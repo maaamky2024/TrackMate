@@ -9,7 +9,7 @@ TrackMate (“we,” “us,” or “our”) is committed to protecting your pri
 ## 1. Information We Collect
 
 - **Local Data**  
-  All data, including--but not limited to--journal entries, logged interactions, emotion tags, and pattern-analysis data are only stored **locally** on your device. We do **not** ever collect or transmit any of this data to any servers. Ever.
+  All data, including--but not limited to--journal entries, logged interactions, selected emotion tags, and pattern-analysis data are only stored **locally** on your device. We do **not** ever collect or transmit any of this data to any servers. Ever.
 
 - **Device Permissions**  
   If you enable biometric lock (Face ID/Touch ID), the app uses your device’s secure enclave to authenticate but does not access or store any of your biometric data.
