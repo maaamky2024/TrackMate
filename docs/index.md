@@ -6,7 +6,7 @@ Welcome to the official support site for TrackMate. Here you’ll find answers t
 
 ## Getting Started
 
-1. ** How to Create a Journal Entry**  
+1. **How to Create a Journal Entry**  
    - Tap **Journal** → **✏️** to create a new Journal Entry.  
    - Select a journal entry prompt (optional)
       - Write what you want to journal in the text box
@@ -17,7 +17,7 @@ Welcome to the official support site for TrackMate. Here you’ll find answers t
    - Tap **Interactions** → **+ New Interaction**.  
    - Enter the person's or group's name.
    - Select the type of interaction you had with them.
-   - Write a note about the interaction that you might want to remnember.
+  - Write a note about the interaction that you might want to remember.
    - Select emotion tags that resonate with how you felt during the interaction.
    - Answer the three reflective questions about the interaction.  
    - Save to add it to your interaction history.
@@ -36,14 +36,14 @@ Welcome to the official support site for TrackMate. Here you’ll find answers t
 ## ❓ FAQ
 
 **Q: How do I reset my entire journal?**  
-A: Go to your Journal tab, swipe left on the journal entry that you want to delete, then tap delete. This will permenantly delete the journal entry you do this to and cannot be recovered once deleted. 
+A: Go to your Journal tab, swipe left on the journal entry that you want to delete, then tap delete. This will permanently delete the journal entry you do this to and cannot be recovered once deleted.
 
 (The ability to delete all data or all of a specific category of data (i.e., only journal entries and keep logged interactions) will be available in future updates).
 
 **Q: Why am I not getting notifications?**  
 A: If you are not getting notifications, please check your phone's notification settings by going to your **settings app** -> **Notifications** -> **TrackMate**. 
 
-If **Allow Notifications** is toggled off, please toggle them on to recieve daily notifications about toxic behaviors.
+If **Allow Notifications** is toggled off, please toggle them on to receive daily notifications about toxic behaviors.
 
 If **Allow Notifications** is toggled on and you are not receiving notifications, please report the issue here ->  https://github.com/your-username/trackmate-app/issues
 
