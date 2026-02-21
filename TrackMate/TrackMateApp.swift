@@ -15,21 +15,19 @@ struct TrackMateApp: App {
     @AppStorage("hasConsentedToPrivacy")
     private var hasConsented = false
     
-    @StateObject var themeManager = ThemeManager.shared
-    @StateObject var purchaseManager = Purchasemanager()
     var body: some Scene {
+        let themeManager = ThemeManager()
         WindowGroup {
             if hasConsented {
                 ContentView()
-                    .accentColor(themeManager.color("AccentColor"))
-                
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                
-                    .environmentObject(ThemeManager.shared)
-                
-                    .environmentObject(purchaseManager)
+                    .environmentObject(themeManager)
+                    .accentColor(themeManager.color("AccentColor"))
             } else {
                 PrivacyNoticeView(requireAcceptance: true)
+                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    .environmentObject(themeManager)
+                    .accentColor(themeManager.color("AccentColor"))
             }
         }
     }

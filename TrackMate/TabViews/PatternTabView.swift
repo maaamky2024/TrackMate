@@ -17,3 +17,7 @@ struct PatternTabView: View {
         PatternAnalysisView()
     }
 }
+
+extension Notification.Name {
+    static let navigateToPatterns = Notification.Name("navigateToPatterns")
+}

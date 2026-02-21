@@ -10,11 +10,7 @@ import SwiftUI
 import CoreData
 
 struct NewInteractionEntryView: View {
-    @Environment(\.managedObjectContext)
-    private var viewContext: NSManagedObjectContext
-    
-    @Environment(\.presentationMode)
-    private var presentationMode: Binding<PresentationMode>
+    @Environment(\.managedObjectContext) private var viewContext: NSManagedObjectContext
     
     @Environment(\.dismiss) private var dismiss
     
@@ -25,84 +21,74 @@ struct NewInteractionEntryView: View {
     @State private var interactionType: String = "In-person"
     @State private var notes: String = ""
     @State private var selectedEmotions: Set<String> = []
-    @State private var didFeelRespected: String = "Maybe"
-    @State private var didFeelBoundariesAcknowledged: String = "Maybe"
-    @State private var didFeelEmotionallySafe: String = "Maybe"
     
-    // Pre-defined options for interaction type and responses
+    @State private var didFeelRespected: String = "I'm Not Sure"
+    @State private var didFeelBoundariesAcknowledged: String = "I'm Not Sure"
+    @State private var didFeelEmotionallySafe: String = "I'm Not Sure"
+    
+    @State private var postSaveInsight: PostSaveInsight?
+    @State private var showInsightSheet = false
+    @State private var showSaveToast = false
+    @State private var saveToastText = "Entry saved."
+    
+    // MARK: - Options
     private let interactionTypes = ["In-person", "Phone call", "Text/DM", "Social media", "Other"]
     private let emotionOptions = ["Happy", "Sad", "Calm", "Anxious", "Confused", "Belittled", "Loved", "Angry", "Guilty", "Invalidated", "Empowered", "Safe", "Unsafe"]
-    private let responseOptions = ["Yes", "No", "Idk"]
+    private let responseOptions = ["Yes", "No", "I'm Not Sure"]
     
+    // MARK: - Body
     var body: some View {
         NavigationStack {
             Form {
                 
-                // Person or group name section
-                Section(header:
-                            Text("Who did you interact with?")
-                    .foregroundColor(themeManager.color("PrimaryText"))
-                    .font(.headline)
-                    .bold()
-                ) {
+                // MARK: - Who
+                Section(header: sectionHeader("Who did you interact with?")) {
                     TextField("", text: $personName)
-                        .foregroundColor(themeManager.color("SecondaryText"))
+                        .foregroundColor(themeManager.color("PrimaryText"))
                         .placeholder(when: personName.isEmpty) {
-                            Text("Enter name or group...")
+                            Text("Entry name or group...")
                                 .foregroundColor(themeManager.color("SecondaryText"))
                                 .padding(.leading, 8)
                         }
                 }
+                .listRowBackground(themeManager.color("CardFill"))
                 
-                // Interaction type picker
-                Section(header:
-                            Text("Interaction Type")
-                    .foregroundColor(themeManager.color("PrimaryText"))
-                    .font(.headline)
-                    .bold()
-                ) {
+                // MARK: - Type
+                Section(header: sectionHeader("Interaction Type")) {
                     Picker("Select type", selection: $interactionType) {
                         ForEach(interactionTypes, id: \.self) { type in
                             Text(type).tag(type)
                         }
-                        
                     }
-                    .pickerStyle(MenuPickerStyle())
-                    .tint(themeManager.color("SecondaryText"))
-                }
-                .foregroundColor(themeManager.color("SecondaryText"))
-                
-                
-                // Notes section
-                Section(header:
-                            Text("Notes")
+                    .pickerStyle(.menu)
                     .foregroundColor(themeManager.color("PrimaryText"))
-                    .font(.headline)
-                    .bold()
-                ) {
+                    .tint(themeManager.color("AccentColor"))
+                }
+                .listRowBackground(themeManager.color("CardFill"))
+                
+                
+                // MARK: - Notes
+                Section(header: sectionHeader("Notes")) {
                     TextEditor(text: $notes)
+                        .frame(minHeight: 110)
+                        .foregroundColor(themeManager.color("PrimaryText"))
                         .placeholder(when: notes.isEmpty) {
                             Text("Describe what happened...")
                                 .foregroundColor(themeManager.color("SecondaryText"))
                                 .padding(.leading, 8)
                         }
-                        .frame(height: 100)
-                        .foregroundColor(themeManager.color("PrimaryText"))
                 }
+                .listRowBackground(themeManager.color("CardFill"))
                 
-                // Emotion Tags multi-selection
-                Section(header:
-                            Text("Emotion Tags")
-                    .foregroundColor(themeManager.color("PrimaryText"))
-                    .font(.headline)
-                    .bold()
-                ) {
+                // MARK: - Emotion Tags
+                Section(header: sectionHeader ("Emotion Tags")) {
                     NavigationLink {
                         MultiSelectList(
                             title: "Select Emotions",
                             options: emotionOptions,
                             selected: $selectedEmotions
                         )
+                        .environmentObject(themeManager)
                     } label: {
                         HStack {
                             Text(
@@ -123,86 +109,84 @@ struct NewInteractionEntryView: View {
                                 .foregroundColor(themeManager.color("SecondaryText"))
                         }
                     }
-                    // Reflection questions section with yes/no/maybe pickers
-                    Section(header:
-                                Text("Reflective Questions")
-                        .foregroundColor(themeManager.color("PrimaryText"))
-                        .font(.headline)
-                        .bold()
-                    ) {
-                        
-                        
-                        Text("Did you feel respected?")
-                            .foregroundColor(themeManager.color("PrimaryText"))
-                            .font(.subheadline)
-                            .italic()
-                        
-                        Picker("Did you feel respected?",
-                               selection: $didFeelRespected) {
-                            ForEach(responseOptions, id: \.self) { option in
-                                Text(option).tag(option)}
-                        }
-                               .pickerStyle(SegmentedPickerStyle())
-                               .tint(themeManager.color("SecondaryText"))
-                        
-                        
-                        Text("Were your boundries respected?")
-                            .foregroundColor(themeManager.color("PrimaryText"))
-                            .font(.subheadline)
-                            .italic()
-                        
-                        Picker("Did your boundaries feel acknowledged?",
-                               selection: $didFeelBoundariesAcknowledged) {
-                            ForEach(responseOptions, id: \.self) { option in
-                                Text(option).tag(option)
-                            }
-                        }
-                               .pickerStyle(SegmentedPickerStyle())
-                               .tint(themeManager.color("SecondaryText"))
-                        
-                        
-                        Text("Did you feel safe emotionally and physcially?")
-                            .foregroundColor(themeManager.color("PrimaryText"))
-                            .font(.subheadline)
-                            .italic()
-                        
-                        Picker("Did you feel emotionally safe?",
-                               selection: $didFeelEmotionallySafe) {
-                            ForEach(responseOptions, id: \.self) { option in
-                                Text(option).tag(option)
-                            }
-                        }
-                               .pickerStyle(SegmentedPickerStyle())
-                               .tint(themeManager.color("SecondaryText"))
-                               .padding(4)
-                    }
                 }
-                .background(themeManager.color("PrimaryBackground"))
+                .listRowBackground(themeManager.color("CardFill"))
+                
+                // MARK: - Reflection questions
+                Section(header: sectionHeader("Reflective Questions")) {
+                    reflectiveQuestion(
+                        prompt: "Did you feel respected?",
+                        selection: $didFeelRespected
+                    )
+                    
+                    reflectiveQuestion(
+                        prompt: "Were your boundaries respected?",
+                        selection: $didFeelBoundariesAcknowledged
+                    )
+                    
+                    reflectiveQuestion(
+                        prompt: "Did you feel safe emotionally and physically?",
+                        selection: $didFeelEmotionallySafe
+                    )
+                }
+                .listRowBackground(themeManager.color("CardFill"))
             }
             .scrollContentBackground(.hidden)
-            .navigationBarBackButtonHidden()
+            .background(themeManager.color("PrimaryBackground"))
+            .trackMateNav(title: "New Interaction", themeManager: themeManager)
+            .navigationBarBackButtonHidden(true)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("New Interaction")
-                        .font(.title)
-                        .bold()
-                        .foregroundColor(themeManager.color("PrimaryText"))
-                }
-                
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .tint(themeManager.color("AccentColor"))
+                        .foregroundColor(themeManager.color("AccentColor"))
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save", action: saveEntry)
-                        .tint(themeManager.color("AccentColor"))
+                        .foregroundColor(themeManager.color("AccentColor"))
                 }
+            }
+            .toast(isPresented: $showSaveToast, text: saveToastText)
+            .sheet(item: $postSaveInsight) { insight in
+                QuickReflectionSheet(insight: insight) {
+                    postSaveInsight = nil
+                    DispatchQueue.main.async {
+                        dismiss()
+                    }
+                }
+                .environmentObject(themeManager)
             }
         }
     }
     
-    // Save action creates and persists a new interaction entity
+    // MARK: - UI Helpers
+    
+    private func sectionHeader(_ text: String) -> some View {
+        Text(text)
+            .foregroundColor(themeManager.color("PrimaryText"))
+            .font(.headline)
+            .bold()
+    }
+    
+    private func reflectiveQuestion(prompt: String, selection: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(prompt)
+                .foregroundColor(themeManager.color("PrimaryText"))
+                .font(.subheadline)
+                .italic()
+            
+            Picker(prompt, selection: selection) {
+                ForEach(responseOptions, id: \.self) { option in                    Text(option).tag(option)
+                }
+            }
+            .pickerStyle(.segmented)
+            .tint(themeManager.color("AccentColor"))
+        }
+        .padding(.vertical, 6)
+    }
+    
+    // MARK: - Save
+    
     private func saveEntry() {
         let newEntry = Interaction(context: viewContext)
         newEntry.id = UUID()
@@ -210,16 +194,33 @@ struct NewInteractionEntryView: View {
         newEntry.personName = personName
         newEntry.interactionType = interactionType
         newEntry.notes = notes
-        newEntry.emotionTags = Array(selectedEmotions) as NSObject
+        
+        // Transformable storage: NSArray is safest for Core Data transformables
+        newEntry.emotionTags = selectedEmotions.sorted() as NSArray
+        
         newEntry.didFeelRespected = didFeelRespected
         newEntry.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
         newEntry.didFeelEmotionallySafe = didFeelEmotionallySafe
         
         do {
             try viewContext.save()
-            presentationMode.wrappedValue.dismiss()
+            
+            // Generate insight once. If present, sheet(item:) will present it automatically.
+            if let insight = InteractionInsightService.generateInsight(
+                context: viewContext,
+                personName: personName
+            ) {
+                postSaveInsight = insight
+            } else {
+                saveToastText = "Interaction recorded."
+                showSaveToast = true
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    dismiss()
+                }
+            }
         } catch {
-            print("Error saveing entry: \(error.localizedDescription)")
+            print("Error saving entry: \(error.localizedDescription)")
         }
     }
 }

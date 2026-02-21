@@ -9,67 +9,51 @@ import SwiftUI
 import CoreData
 
 struct ThemeSelectionView: View {
-    private let premiumThemeNames: Set<String> = [
-        "Forest",
-        "Midnight"
+    
+    private let themeLabels: [String: String] = [
+        "Ocean": "Calm & Clear",
+        "Forest": "Grounded",
+        "Midnight": "Quiet Focus"
     ]
     
-    @State private var showingPurchaseConfirmation = false
-    
-    @EnvironmentObject var purchaseManager: Purchasemanager
-    
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject var themeManager: ThemeManager
     
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Theme.name, ascending: true)]
     ) private var themes: FetchedResults<Theme>
     
-    @EnvironmentObject var themeManager: ThemeManager
-    
     var body: some View {
         List {
             ForEach(themes) { theme in
-                let isPremium = premiumThemeNames.contains(theme.name ?? "")
-                let isLocked = isPremium && !purchaseManager.hasUnlockedThemes
-                
-                HStack {
-                    Text(theme.name ?? "")
-                        .foregroundColor(isLocked ? .secondary : .primary)
-                    
-                    Spacer()
-                    if isLocked {
-                        Image(systemName: "lock.fill")
-                            .foregroundColor(.secondary)
-                    } else if theme.isSelected {
-                        Image(systemName: "checkmark")
-                            .foregroundColor(themeManager.color("AccentColor"))
+                Button {
+                    themeManager.selectTheme(theme, in: viewContext)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(theme.name ?? "")
+                                .foregroundColor(themeManager.color("PrimaryText"))
+                            
+                            if let name = theme.name,
+                               let label = themeLabels[name] {
+                                Text(label)
+                                    .font(.caption)
+                                    .foregroundColor(themeManager.color("SecondaryText"))
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        if theme.isSelected {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(themeManager.color("AccentColor"))
+                        }
                     }
                 }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if isLocked {
-                        showingPurchaseConfirmation = true
-                    } else {
-                        themeManager.selectTheme(theme)
-                    }
-                }
+                .buttonStyle(.plain)
             }
-            .confirmationDialog(
-                "Unlock Premium Themes",
-                isPresented: $showingPurchaseConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Unlock Theme Pack") {
-                    Task {
-                        await purchaseManager.purchaseThemePack()
-                    }
-                }
-                
-                Button("Cancel", role: .cancel) {}
-            }
-            
         }
-        .navigationTitle("Color Scheme")
+        .trackMateNav(title: "Theme", themeManager: themeManager)
         .background(themeManager.color("PrimaryBackground"))
     }
 }

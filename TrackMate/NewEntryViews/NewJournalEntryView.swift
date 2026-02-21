@@ -10,31 +10,32 @@ import NaturalLanguage
 import CoreData
 
 struct NewJournalEntryView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.managedObjectContext) private var viewContext: NSManagedObjectContext
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    @Environment(\.presentationMode) private var presentationMode
     @Environment(\.dismiss) private var dismiss
     
-    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var viewModel: JournalEntryViewModel
     
-    // Local draft state
-    @State private var entryContent: String = ""
-    @State private var selectedPrompt: Prompt?
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Prompt.createdAt, ascending: false)],
-        animation: .default
-    ) private var prompts: FetchedResults<Prompt>
-    @State private var sentimentFeedback: String = ""
-    @State private var selectedEmotions: Set<String> = []
-    @State private var emotionOptions: [String] = [
+    private let emotionOptions: [String] = [
         "Happy", "Sad", "Calm", "Anxious", "Confused",
         "Angry", "Loved", "Empowered", "Safe", "Unsafe"
     ]
-
+    
+    @State private var showLinkPrompt = false
+    @State private var recentInteraction: Interaction?
+    @State private var savedJournalEntry: JournalEntry?
+    @State private var dismissAfterLinkSheet = false
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
+    
+    init(existingDraft: JournalEntry? = nil) {
+        _viewModel = StateObject(wrappedValue: JournalEntryViewModel(existingDraft: existingDraft))
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                promptHeader
-                promptSelectionView
                 entryEditor
                 emotionTagsSection
                 Spacer()
@@ -44,93 +45,99 @@ struct NewJournalEntryView: View {
         }
         .background(themeManager.color("PrimaryBackground"))
         .navigationBarBackButtonHidden()
+        .trackMateNav(title: "New Journal Entry", themeManager: themeManager)
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text("New Journal Entry")
-                    .font(.title)
-                    .bold()
-                    .foregroundColor(themeManager.color("PrimaryText"))
-            }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save", action: saveEntry)
-                    .tint(themeManager.color("AccentColor"))
+                Button("Save") {
+                    do {
+                        savedJournalEntry = try viewModel.saveEntry(context: viewContext)
+                        presentationMode.wrappedValue.dismiss()
+                    } catch {
+                        errorMessage = "Could not save entry."
+                        showingErrorAlert = true
+                    }
+                }
+                .tint(themeManager.color("AccentColor"))
+                .disabled(!viewModel.isFormValid)
             }
+            
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { dismiss() }
                     .tint(themeManager.color("AccentColor"))
             }
         }
-        .onDisappear(perform: autoSaveDraft)
-    }
-
-    // MARK: - Subviews
-
-    private var promptHeader: some View {
-        Group {
-            if let prompt = selectedPrompt {
-                Text("Prompt: \(prompt.text ?? "")")
-                    .foregroundColor(themeManager.color("SecondaryText"))
-                    .padding(.horizontal)
-            }
+        .onDisappear {
+            viewModel.autoSaveDraft(context: viewContext)
         }
-    }
-
-    private var promptSelectionView: some View {
-        Group {
-            if selectedPrompt == nil {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(prompts) { prompt in
-                            Button {
-                                selectedPrompt = prompt
-                                entryContent = (prompt.text ?? "") + "\n"
-                            } label: {
-                                Text(prompt.text ?? "")
-                                    .font(.footnote).bold()
-                                    .padding(8)
-                                    .background(themeManager.color("CardFill"))
-                                    .cornerRadius(10)
-                                    .foregroundColor(themeManager.color("SecondaryText"))
-                            }
+        .sheet(isPresented: $showLinkPrompt, onDismiss: {
+            if dismissAfterLinkSheet {
+                dismissAfterLinkSheet = false
+                dismiss()
+            }
+        }) {
+            if let interaction = recentInteraction, let journal = savedJournalEntry {
+                
+                LinkJournalPromptSheet(
+                    interaction: interaction,
+                    onLink: {
+                        journal.linkedInteraction = interaction
+                        
+                        do {
+                            try viewContext.save()
+                        } catch {
+                            print("Failed to link journal entry: \(error)")
                         }
+                        
+                        dismissAfterLinkSheet = true
+                        showLinkPrompt = false
+                    },
+                    onDismiss: {
+                        dismissAfterLinkSheet = true
+                        showLinkPrompt = false
                     }
-                    .padding(.horizontal)
-                }
+                )
+                .environmentObject(themeManager)
             }
         }
+        .alert("Save Error", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
     }
-
+    
+    // MARK: - Subviews
+    
     private var entryEditor: some View {
-        TextEditor(text: $entryContent)
+        TextEditor(text: $viewModel.entryContent)
             .frame(minHeight: 200)
             .foregroundColor(themeManager.color("SecondaryText"))
             .padding()
             .background(themeManager.color("CardFill"))
             .cornerRadius(8)
     }
-
+    
     private var emotionTagsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Emotion Tags")
                 .foregroundColor(themeManager.color("PrimaryText"))
                 .font(.headline)
-                .bold()
             
             NavigationLink {
                 MultiSelectList(
                     title: "Select Emotions",
                     options: emotionOptions,
-                    selected: $selectedEmotions
+                    selected: $viewModel.selectedEmotions
                 )
             } label: {
                 HStack {
                     Text(
-                        selectedEmotions.isEmpty
+                        viewModel.selectedEmotions.isEmpty
                         ? "Choose emotions"
-                        : selectedEmotions.sorted().joined(separator: ", ")
+                        : viewModel.selectedEmotions.sorted().joined(separator: ", ")
                     )
                     .foregroundColor(
-                        selectedEmotions.isEmpty
+                        viewModel.selectedEmotions.isEmpty
                         ? themeManager.color("SecondaryText")
                         : themeManager.color("PrimaryText")
                     )
@@ -147,40 +154,4 @@ struct NewJournalEntryView: View {
             }
         }
     }
-
-    // MARK: - Actions
-
-    private func saveEntry() {
-        let newEntry = JournalEntry(context: viewContext)
-        newEntry.id = UUID()
-        newEntry.timestamp = Date()
-        newEntry.lastModified = Date()
-        newEntry.content = entryContent
-        newEntry.sentimentScore = analyzeSentiment(for: entryContent)
-        newEntry.promptUsed = selectedPrompt?.text
-        newEntry.emotionTags = Array(selectedEmotions) as NSObject
-        newEntry.isDraft = false
-
-        do {
-            try viewContext.save()
-            presentationMode.wrappedValue.dismiss()
-        } catch {
-            print("Error saving journal entry: \(error.localizedDescription)")
-        }
-    }
-
-    private func analyzeSentiment(for text: String) -> Double {
-        let tagger = NLTagger(tagSchemes: [.sentimentScore])
-        tagger.string = text
-        let (sentiment, _) = tagger.tag(at: text.startIndex, unit: .paragraph, scheme: .sentimentScore)
-        if let sentimentStr = sentiment?.rawValue, let score = Double(sentimentStr) {
-            return score
-        }
-        return 0.0
-    }
-
-    private func autoSaveDraft() {
-        print("Draft auto-saved at \(Date()): \(entryContent)")
-    }
 }
-

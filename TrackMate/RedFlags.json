@@ -1,0 +1,156 @@
+[
+  {
+    "category": "Gaslighting",
+    "description": "Manipulating someone into questioning their own reality.",
+    "examples": [
+      "You're too sensitive.",
+      "That never happened.",
+      "You're imagining things."
+    ],
+    "tips": [
+      "Document conversations and events to maintain clarity.",
+      "Talk to someone you trust about what happened."
+    ],
+    "scripts": [
+      "I remember it differently.",
+      "I trust my own perception of events."
+    ],
+    "resources": [
+      "https://www.verywellmind.com/signs-of-gaslighting-4147470"
+    ]
+  },
+  {
+    "category": "Love Bombing",
+    "description": "Overwhelming someone with affection to gain control.",
+    "examples": [
+      "You're the best thing that ever happened to me.",
+      "I can't live without you."
+    ],
+    "tips": [
+      "Set boundaries early on.",
+      "Pay attention to whether affection feels authentic or manipulative."
+    ],
+    "scripts": [
+      "I appreciate your affection, but I need time to process.",
+      "Let’s slow down and get to know each other better."
+    ],
+    "resources": [
+      "https://psychcentral.com/blog/what-is-love-bombing"
+    ]
+  },
+  {
+    "category": "Stonewalling",
+    "description": "Refusing to communicate or cooperate, often as a control tactic.",
+    "examples": [
+      "Ignoring texts or calls during arguments.",
+      "Walking away mid-conversation."
+    ],
+    "tips": [
+      "Express your need for open communication.",
+      "Don't chase—allow space but maintain your boundaries."
+    ],
+    "scripts": [
+      "We can take a break, but let’s revisit this soon.",
+      "I need to have this conversation eventually for clarity."
+    ],
+    "resources": [
+      "https://www.gottman.com/blog/the-four-horsemen-stonewalling/"
+    ]
+  },
+  {
+    "category": "DARVO",
+    "description": "Deny, Attack, and Reverse Victim and Offender — a common manipulation tactic.",
+    "examples": [
+      "You're attacking me!",
+      "You're the one who hurt me."
+    ],
+    "tips": [
+      "Stay calm and document the exchange.",
+      "Seek validation from neutral third parties."
+    ],
+    "scripts": [
+      "Let’s focus on the original issue.",
+      "This feels like you're turning the situation against me."
+    ],
+    "resources": [
+      "https://www.healthline.com/health/darvo"
+    ]
+  },
+  {
+    "category": "Trauma Bonding",
+    "description": "A strong emotional attachment to an abuser due to cycles of abuse and intermittent reinforcement.",
+    "examples": [
+      "But they apologized after.",
+      "They said it won't happen again."
+    ],
+    "tips": [
+      "Educate yourself on trauma bonds.",
+      "Create physical and emotional distance where possible."
+    ],
+    "scripts": [
+      "I deserve consistency and respect.",
+      "My feelings are valid even if I care about them."
+    ],
+    "resources": [
+      "https://psychcentral.com/lib/what-is-trauma-bonding"
+    ]
+  },
+  {
+    "category": "Hoovering",
+    "description": "When an abuser tries to pull someone back into a toxic cycle by pretending to change.",
+    "examples": [
+      "I’ve changed, I swear.",
+      "I miss you, let’s talk just once."
+    ],
+    "tips": [
+      "Block contact when possible.",
+      "Remind yourself of past patterns."
+    ],
+    "scripts": [
+      "I’ve seen this before and I’m not going back.",
+      "Closure doesn’t require reopening the wound."
+    ],
+    "resources": [
+      "https://www.medicalnewstoday.com/articles/hoovering"
+    ]
+  },
+  {
+    "category": "Codependency",
+    "description": "Excessive emotional or psychological reliance on a partner, often to the detriment of self.",
+    "examples": [
+      "I can’t be happy unless you are.",
+      "You need me to fix this for you."
+    ],
+    "tips": [
+      "Develop personal boundaries.",
+      "Learn to separate your emotions from others."
+    ],
+    "scripts": [
+      "I need to take care of myself too.",
+      "My worth isn’t based on someone else’s needs."
+    ],
+    "resources": [
+      "https://www.verywellmind.com/what-is-codependency-5072124"
+    ]
+  },
+  {
+    "category": "Control Disguised as Boundaries",
+    "description": "Using the language of boundaries to actually control or isolate someone.",
+    "examples": [
+      "I have a boundary that you can’t talk to your friends.",
+      "My boundary is that you tell me everything."
+    ],
+    "tips": [
+      "Clarify the difference between healthy boundaries and demands.",
+      "Ask whether the boundary respects both parties."
+    ],
+    "scripts": [
+      "That doesn’t feel like a boundary; it feels like control.",
+      "Let’s revisit what boundaries mean for each of us."
+    ],
+    "resources": [
+      "https://www.psychologytoday.com/us/blog/the-right-mindset/202206/how-tell-if-boundary-is-real"
+    ]
+  }
+]
+

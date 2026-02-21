@@ -11,53 +11,65 @@ import CoreData
 struct SettingsTabView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var themeManager: ThemeManager
-    @EnvironmentObject var purchaseManager: Purchasemanager
     
     @State private var showingRestoreResult = false
     @State private var restoreResultMessage = ""
+    
+    @AppStorage("requireAppLock") private var requireAppLock = true
+    
+    private enum Route: Hashable {
+        case theme
+    }
     
     var body: some View {
         NavigationStack {
             List {
                 // MARK: - Theme
-                Section(header: Text("Appearance")) {
-                    NavigationLink("Theme") {
-                        ThemeSelectionView()
+                Section(header: Text("Theme")) {
+                    NavigationLink(value: Route.theme) {
+                        HStack {
+                            Text("Theme")
+                                .foregroundColor(themeManager.color("PrimaryText"))
+                        }
                     }
                 }
+                .textCase(nil)
                 
                 // MARK: - Notifications
                 
                 // MARK: - Privacy
-                
+                Section(header: Text("Privacy & Data")) {
+                    NavigationLink("Privacy Notice") {
+                        PrivacyNoticeView(requireAcceptance: false)
+                            .environmentObject(themeManager)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("• Your entries are stored and encrypted on your device.")
+                        Text("• If iCloud sync is enabled, Apple manages syncing through your Apple ID.")
+                        Text("• None of your information is sold or shared by TrackMate or any third-party service.")
+                    }
+                    .font(.footnote)
+                    .foregroundColor(themeManager.color("SecondaryText"))
+                    .padding(.vertical, 6)
+                    
+                    Toggle("Require App Lock", isOn: $requireAppLock)
+                }
+                .textCase(nil)
                 // MARK: - Account
                 
-                // MARK: - In-App Purchasing
-                Section(header: Text("Purchases")) {
-                    Button("Restore Purchases") {
-                        Task { @MainActor in
-                            await purchaseManager.restorePurchase()
-                            
-                            if purchaseManager.hasUnlockedThemes {
-                                restoreResultMessage = "Your Theme Pack is restored and unlocked."
-                            } else if let err = purchaseManager.lastErrorMessage, !err.isEmpty {
-                                restoreResultMessage = err
-                            } else {
-                                restoreResultMessage = "No purchases were found to restore."
-                            }
-                        
-                            showingRestoreResult = true
-                        }
-                    }
+            }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(themeManager.color("PrimaryBackground"))
+            .trackMateNav(title: "Settings", themeManager: themeManager)
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .theme:
+                    ThemeSelectionView()
+                        .environmentObject(themeManager)
                 }
             }
-            .navigationTitle("Settings")
-            .alert("Restore Purchases", isPresented: $showingRestoreResult) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(restoreResultMessage)
-            }
         }
-        .background(themeManager.color("PrimaryBackground"))
     }
 }

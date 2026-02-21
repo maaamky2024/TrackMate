@@ -9,6 +9,7 @@ import SwiftUI
 import CoreData
 
 struct PromptListView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var viewContext
     
     @EnvironmentObject var themeManager: ThemeManager
@@ -18,7 +19,6 @@ struct PromptListView: View {
     ) private var prompts: FetchedResults<Prompt>
     
     @State private var newPromptText = ""
-    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         NavigationStack {
@@ -71,7 +71,8 @@ struct PromptListView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { presentationMode.wrappedValue.dismiss() }
+                    Button("Done") {
+                        dismiss() }
                 }
             }
         }

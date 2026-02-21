@@ -14,11 +14,11 @@ final class ThemeManager: ObservableObject {
     @Published var currentTheme: Theme?
     private let context = PersistenceController.shared.container.viewContext
     
-    private init() {
-        loadCurrentTheme()
+     init() {
+        loadCurrentTheme(in: context)
     }
     
-    func loadCurrentTheme() {
+    func loadCurrentTheme(in context: NSManagedObjectContext) {
         let request = NSFetchRequest<Theme>(entityName: "Theme")
         request.predicate = NSPredicate(format: "isSelected == true")
         request.fetchLimit = 1
@@ -26,7 +26,7 @@ final class ThemeManager: ObservableObject {
             currentTheme = (try? context.fetch(request))?.first
     }
     
-    func selectTheme(_ theme: Theme) {
+    func selectTheme(_ theme: Theme, in context: NSManagedObjectContext) {
         let fetch = NSFetchRequest<Theme>(entityName: "Theme")
         let allThemes = (try? context.fetch(fetch)) ?? []
         

@@ -11,8 +11,8 @@ import Foundation
 
 struct EditInteractionView: View {
    @ObservedObject var interaction: Interaction
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var viewContext
-    @Environment(\.presentationMode) private var presentationMode
     @EnvironmentObject var themeManager: ThemeManager
     
     @State private var personName: String
@@ -25,7 +25,7 @@ struct EditInteractionView: View {
     
     private let interactionTypes = ["In-person", "Phone call", "Text/DM", "Social media", "Other"]
     private let emotionOptions = ["Happy", "Sad", "Calm", "Anxious", "Confused", "Belittled", "Loved", "Angry", "Guilty", "Invalidated", "Empowered", "Safe", "Unsafe"]
-    private let responseOptions = ["Yes", "No", "Idk"]
+    private let responseOptions = ["Yes", "No", "I'm Not Sure"]
     
     init(interaction: Interaction) {
         self.interaction                = interaction
@@ -186,7 +186,8 @@ struct EditInteractionView: View {
                 }
                 
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { presentationMode.wrappedValue.dismiss()
+                    Button("Cancel") {
+                        dismiss()
                     }
                     .tint(themeManager.color("AccentColor"))
                 }
@@ -210,7 +211,7 @@ struct EditInteractionView: View {
         
         do {
             try viewContext.save()
-            presentationMode.wrappedValue.dismiss()
+            dismiss()
         } catch {
             print("Failed to save edits: \(error.localizedDescription)")
         }

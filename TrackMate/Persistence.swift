@@ -50,6 +50,7 @@ struct PersistenceController {
             preloadRedFlagsIfNeeded(context: viewContext)
         }
         
+        viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         viewContext.automaticallyMergesChangesFromParent = true
         self.container = container
     }

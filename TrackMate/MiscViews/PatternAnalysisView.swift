@@ -34,34 +34,77 @@ struct PatternAnalysisView: View {
         entity: Interaction.entity(),
         sortDescriptors: [NSSortDescriptor(keyPath: \Interaction.timestamp, ascending: true)]
     )
+    
     var interactions: FetchedResults<Interaction>
+    
+    @State private var selectedDay: Date?
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Weekly Pattern Analysis")
-                    .font(.largeTitle)
+                    .font(.headline)
                     .bold()
                     .padding(.bottom, 5)
                     .foregroundColor(themeManager.color("PrimaryText"))
-                    
+                
+                let insightText = WeeklyInsightEngine.generate(
+                    interactions: Array(interactions)
+                )
+                
+                Text(insightText)
+                    .font(.body)
+                    .foregroundColor(themeManager.color("SecondaryText"))
+                    .padding(.vertical, 12)
+                
+                if interactions.isEmpty {
+                    Text("Patterns appear when moments are captured.")
+                        .foregroundColor(themeManager.color("SecondaryText"))
+                        .padding()
+                } else if interactions.count == 1 {
+                    Text("Early signals are forming.")
+                        .foregroundColor(themeManager.color("SecondaryText"))
+                } else {
+                    Text("Patterns are becoming clearer.")
+                        .foregroundColor(themeManager.color("SecondaryText"))
+                }
+                
                 
                 // Weekly Calendar with color-coded emotional states
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
                         ForEach(getDaysForCurrentWeek(), id: \.self) { day in
-                            VStack {
-                                Text(day, formatter: dateFormatter)
-                                    .foregroundColor(themeManager.color("SecondaryText"))
-                                    .multilineTextAlignment(.center)
-                                Circle()
-                                    .fill(colorForDay(day: day))
-                                    .frame(width: 50, height: 50)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.black, lineWidth: 2)
-                                    )
+                            
+                            Button {
+                                selectedDay = day
+                            } label: {
+                                VStack {
+                                    Text(day, formatter: dateFormatter)
+                                        .foregroundColor(themeManager.color("SecondaryText"))
+                                        .multilineTextAlignment(.center)
+                                    
+                                    Circle()
+                                        .fill(colorForDay(day: day))
+                                        .frame(width: 50, height: 50)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(
+                                                    selectedDay == day
+                                                    ? themeManager.color("AccentColor")
+                                                    : Color.clear,
+                                                    lineWidth: 3
+                                                )
+                                        )
+                                }
                             }
+                            .buttonStyle(.plain)
+                            .simultaneousGesture(
+                                LongPressGesture().onEnded { _ in
+                                    NotificationCenter.default.post( name: .prefillInteractionDate,
+                                                                     object: day
+                                    )
+                                }
+                            )
                         }
                     }
                     .padding(.vertical, 10)
@@ -89,7 +132,7 @@ struct PatternAnalysisView: View {
                     .font(.headline)
                     .foregroundColor(themeManager.color("PrimaryText"))
                     .bold()
-                    
+                
                 
                 Chart {
                     ForEach(computeWeeklyInteractionCounts(), id: \.weekStart) { dataPoint in
@@ -275,4 +318,8 @@ struct PatternAnalysisView: View {
         return "You logged \(total) interactions this week. \(topIndividualCount) involved \(topIndividual)."
             
     }
+}
+
+extension Notification.Name {
+    static let prefillInteractionDate = Notification.Name("prefillInInteractionDate")
 }

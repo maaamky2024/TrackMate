@@ -10,14 +10,7 @@ import CoreData
 
 struct RedFlagsLibraryView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    
     @EnvironmentObject var themeManager: ThemeManager
-    
-    @State private var selectedRedFlag: RedFlags?
-    
-    private func navigate(to redFlag: RedFlags) {
-        selectedRedFlag = redFlag
-    }
     
     // Fetch the RedFlags entity objects, sorted by category
     @FetchRequest(
@@ -25,46 +18,61 @@ struct RedFlagsLibraryView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \RedFlags.category, ascending: true)]
     ) private var redFlags: FetchedResults<RedFlags>
     
+    @State private var selectedRedFlag: RedFlags?
+    
+    private func navigate(to redFlag: RedFlags) {
+        selectedRedFlag = redFlag
+    }
+    
     var body: some View {
         NavigationStack {
-            ScrollView {
+            List {
                 ForEach(redFlags) { redFlag in
-                    HStack {
-                        Text(redFlag.category ?? "Unknown")
-                            .font(.headline)
-                            .foregroundColor(themeManager.color("SecondaryText"))
-                        
-                        Spacer()
-                        
-                        Button {
-                            toggleFavorite(for: redFlag)
-                        } label: {
+                    NavigationLink {
+                        RedFlagDetailView(redFlag: redFlag)
+                            .environmentObject(themeManager)
+                    } label: {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(redFlag.category ?? "Unknown")
+                                    .font(.headline)
+                                    .foregroundColor(themeManager.color("SecondaryText"))
+                                
+                                if redFlag.wasMatched {
+                                    Text("Seen in your logs")
+                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            themeManager.color("AccentColor").opacity(0.15)
+                                        )
+                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                }
+                            }
+                            
+                            Spacer()
+                            
                             Image(systemName: redFlag.isFavorite ? "star.fill" : "star")
                                 .foregroundColor(themeManager.color("AccentColor"))
                         }
-                        .buttonStyle(BorderlessButtonStyle())
+                        .padding(.vertical, 10)
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        navigate(to: redFlag)
+                    .listRowBackground(themeManager.color("CardFill"))
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button {
+                            toggleFavorite(for: redFlag)
+                        } label: {
+                            Label("Favorite", systemImage: redFlag.isFavorite ? "star.slash" : "star")
+                        }
+                        .tint(themeManager.color("AccentColor"))
                     }
                 }
-                
-                // Deletion of entries
                 .onDelete(perform: deleteRedFlags)
             }
-            
+            .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(themeManager.color("PrimaryBackground"))
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Red Flags")
-                        .font(.title)
-                        .bold()
-                        .foregroundColor(themeManager.color("PrimaryText"))
-                }
-            }
-            
+            .trackMateNav(title: "Red Flags", themeManager: themeManager)
         }
     }
     

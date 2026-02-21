@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "TM-icon-2-iOS-Default-1024x1024@1x.png",
+      "filename" : "App-Icon-v1-iOS-Default-1024x1024@1x.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "TM-icon-2-iOS-Dark-1024x1024@1x.png",
+      "filename" : "App-Icon-v1-iOS-Dark-1024x1024@1x.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "TM-icon-2-iOS-ClearLight-1024x1024@1x.png",
+      "filename" : "App-Icon-v1-iOS-ClearDark-1024x1024@1x.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
