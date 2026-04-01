@@ -38,6 +38,7 @@ struct PatternAnalysisView: View {
     var interactions: FetchedResults<Interaction>
     
     @State private var selectedDay: Date?
+    @State private var personSummaries: [String: String] = [:]
     
     var body: some View {
         ScrollView {
@@ -145,11 +146,41 @@ struct PatternAnalysisView: View {
                 .frame(height: 200)
                 .foregroundColor(themeManager.color("ChartBar"))
                 
-                // Sentiment summary text
-                Text(sentimentSummary())
-                    .font(.body)
-                    .padding()
-                    .foregroundColor(themeManager.color("SecondaryText"))
+              // Foundation Model Summary
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Relationship Insights")
+                        .font(.headline)
+                        .foregroundColor(themeManager.color("PrimaryText"))
+                    
+                    ForEach(getUniquePeople(), id: \.self) { person in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(person)
+                                .font(.subheadline.bold())
+                                .foregroundColor(themeManager.color("AccentColor"))
+                            
+                            if let summary = personSummaries[person] {
+                                Text(summary)
+                                    .font(.body)
+                                    .foregroundColor(themeManager.color("SecondaryText"))
+                            } else {
+                                HStack {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                    Text("Analyzing patterns...")
+                                        .font(.caption.italic())
+                                        .foregroundColor(themeManager.color("SecondaryText"))
+                                }
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(themeManager.color("CardFill"))
+                        .cornerRadius(12)
+                    }
+                }
+                .task {
+                    await refreshAISummaries()
+                }
             }
             .padding()
         }
@@ -317,6 +348,44 @@ struct PatternAnalysisView: View {
         
         return "You logged \(total) interactions this week. \(topIndividualCount) involved \(topIndividual)."
             
+    }
+    
+    private func refreshAISummaries() async {
+        // Group interactions by name
+        let grouped = Dictionary(grouping: interactions) { $0.personName ?? "Unknown" }
+        
+        for (person, logs) in grouped {
+            // Gets notes to be analyzed
+            var combinedText: [String] = logs.compactMap { $0.notes }.filter { !$0.isEmpty }
+            _ = logs.compactMap { $0.notes }.filter { !$0.isEmpty }
+            
+            // Gets content from linked journal entries
+            for interaction in logs {
+                if let linkedEntries = interaction.journalEntries as? Set<JournalEntry> {
+                    let journalTexts = linkedEntries.compactMap { $0.content }.filter { !$0.isEmpty }
+                    combinedText.append(contentsOf: journalTexts)
+                }
+            }
+            
+            // Check that prompt isn't empty
+            guard !combinedText.isEmpty else {
+                await MainActor.run {
+                    personSummaries[person] = "No notes recorded yet to analyze."
+                }
+                continue
+            }
+            
+            // Call to FoundationModels file
+            if let summary = try? await AIInsightService.generateSummary(for: person, notes: combinedText) {
+                await MainActor.run {
+                    personSummaries[person] = summary
+                }
+            }
+        }
+    }
+    
+    private func getUniquePeople() -> [String] {
+        Array(Set(interactions.compactMap { $0.personName })).sorted()
     }
 }
 
