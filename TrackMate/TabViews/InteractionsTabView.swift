@@ -48,9 +48,8 @@ struct InteractionsTabView: View {
                 
                 ForEach(interactions) { interaction in
                     NavigationLink {
-                        SecureView {
                             InteractionDetailView(interaction: interaction)
-                        }
+
                     } label: {
                         VStack {
                             InteractionRowCard(interaction: interaction)

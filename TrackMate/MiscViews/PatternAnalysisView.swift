@@ -185,6 +185,12 @@ struct PatternAnalysisView: View {
             .padding()
         }
         .background(themeManager.color("PrimaryBackground"))
+        .trackMateNav(title: "Pattern Analysis", themeManager: themeManager)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                
+            }
+        }
     }
     
     // MARK: - Helper Functions

@@ -11,10 +11,11 @@ import CoreData
 struct InteractionDetailView: View {
     @ObservedObject var interaction: Interaction
     
-    @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var themeManager: ThemeManager
     
+    @State private var hasProcessedFlags = false
     @State private var showingEdit = false
     @State private var suggestions: [(RedFlags, String)] = []
     
@@ -51,28 +52,33 @@ struct InteractionDetailView: View {
                 redFlagSuggestionsSection()
             }
             .padding()
-            
         }
         .background(themeManager.color("PrimaryBackground"))
         .navigationBarBackButtonHidden()
-        .onAppear {
-            suggestions = matchedRedFlags()
+        .task {
+            guard !hasProcessedFlags else { return }
+            
+            hasProcessedFlags = true
+            
+            let matchedResults = await performFlagMatching()
+            
+            await MainActor.run {
+                self.suggestions = matchedResults
+            }
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Edit") {
                     showingEdit = true
                 }
-                .foregroundColor(themeManager.color("AccentColor"))
-            }
-            
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Back") {
-                    dismiss()
+                        .foregroundColor(themeManager.color("AccentColor"))
                 }
-                .foregroundColor(themeManager.color("AccentColor"))
+                
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Back") { dismiss() }
+                        .foregroundColor(themeManager.color("AccentColor"))
+                }
             }
-        }
         .sheet(isPresented: $showingEdit) {
             EditInteractionView(interaction: interaction)
                 .environment(\.managedObjectContext, viewContext)
@@ -120,7 +126,7 @@ struct InteractionDetailView: View {
             Divider()
         }
     }
-
+    
     private func emotionsSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             if let tags = interaction.emotionTags as? [String], !tags.isEmpty {
@@ -144,23 +150,23 @@ struct InteractionDetailView: View {
                 .bold()
                 .foregroundColor(themeManager.color("PrimaryText"))
             
-          reflectionRow(
-                    question: "1.) Were you respected?",
-                    answer: interaction.didFeelRespected ?? "-")
+            reflectionRow(
+                question: "1.) Were you respected?",
+                answer: interaction.didFeelRespected ?? "-")
             foregroundColor(themeManager.color("SecondaryText"))
             
             reflectionRow(
                 question: "2.) Were your boundaries respected?",
                 answer: interaction.didFeelBoundariesAcknowledged ?? "-")
-                    .foregroundColor(themeManager.color("SecondaryText"))
+            .foregroundColor(themeManager.color("SecondaryText"))
             
             reflectionRow(
-            question: "3.) Did you feel safe? (emotionally and physically)",
-            answer: interaction.didFeelEmotionallySafe ?? "-")
-                    .foregroundColor(themeManager.color("SecondaryText"))
-                
-            }
+                question: "3.) Did you feel safe? (emotionally and physically)",
+                answer: interaction.didFeelEmotionallySafe ?? "-")
+            .foregroundColor(themeManager.color("SecondaryText"))
+            
         }
+    }
     
     private func reflectionRow(question: String, answer: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -173,111 +179,113 @@ struct InteractionDetailView: View {
         .foregroundColor(themeManager.color("SecondaryText"))
     }
     
-        private func linkedJournalsSection() -> some View {
-            guard !sortedEntries.isEmpty else { return AnyView(EmptyView()) }
-            
-            return AnyView(
-                VStack(alignment: .leading, spacing: 10) {
-                    Divider()
-                    
-                    Text("Reflections")
-                        .font(.headline)
-                        .foregroundColor(themeManager.color("PrimaryText"))
-                    
-                    Text("\(sortedEntries.count) journal entr\(sortedEntries.count == 1 ? "y" : "ies") linked")
-                        .font(.subheadline)
-                        .foregroundColor(themeManager.color("SecondaryText"))
-               
-                    VStack(spacing: 10) {
-                        ForEach(sortedEntries) { entry in
-                            NavigationLink {
-                                JournalDetailView(journalEntry: entry)
-                            } label: {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text((entry.content ?? "Untitled Entry")
-                                            .trimmingCharacters(in: .whitespacesAndNewlines))
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundColor(themeManager.color("PrimaryText"))
-                                            .lineLimit(1)
-                                        
-                                        if let ts = entry.timestamp {
-                                            Text(ts, style: .date)
-                                                .font(.caption)
-                                                .foregroundColor(themeManager.color("SecondaryText"))
-                                        }
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(themeManager.color("SecondaryText"))
-                                }
-                                .padding(12)
-                                .background(themeManager.color("CardFill"))
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.top, 6)
-                }
-            )
-        }
+    private func linkedJournalsSection() -> some View {
+        guard !sortedEntries.isEmpty else { return AnyView(EmptyView()) }
         
-        private func redFlagSuggestionsSection() -> some View {
-            guard !suggestions.isEmpty else { return AnyView(EmptyView()) }
-            
-            return AnyView(
-                    DisclosureGroup("Possible Patterns to Explore") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            ForEach(suggestions.indices, id: \.self) { index in
-                                let redFlag = suggestions[index].0
-                                let reason = suggestions[index].1
-                                
-                                NavigationLink {
-                                    RedFlagDetailView(redFlag: redFlag)
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(redFlag.category ?? "")
-                                            .font(.headline)
-                                            .foregroundColor(themeManager.color("PrimaryText"))
-                                        
-                                        Text(reason)
-                                            .font(.footnote)
+        return AnyView(
+            VStack(alignment: .leading, spacing: 10) {
+                Divider()
+                
+                Text("Reflections")
+                    .font(.headline)
+                    .foregroundColor(themeManager.color("PrimaryText"))
+                
+                Text("\(sortedEntries.count) journal entr\(sortedEntries.count == 1 ? "y" : "ies") linked")
+                    .font(.subheadline)
+                    .foregroundColor(themeManager.color("SecondaryText"))
+                
+                VStack(spacing: 10) {
+                    ForEach(sortedEntries) { entry in
+                        NavigationLink {
+                            JournalDetailView(journalEntry: entry)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text((entry.content ?? "Untitled Entry")
+                                        .trimmingCharacters(in: .whitespacesAndNewlines))
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundColor(themeManager.color("PrimaryText"))
+                                    .lineLimit(1)
+                                    
+                                    if let ts = entry.timestamp {
+                                        Text(ts, style: .date)
+                                            .font(.caption)
                                             .foregroundColor(themeManager.color("SecondaryText"))
                                     }
                                 }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(themeManager.color("SecondaryText"))
                             }
+                            .padding(12)
+                            .background(themeManager.color("CardFill"))
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         }
-                        .padding(.top, 8)
+                        .buttonStyle(.plain)
                     }
-                    .padding(.top, 16)
-                )
+                }
+                .padding(.top, 6)
             }
-        // MARK: - Data Logic
+        )
+    }
     
-    private func matchedRedFlags() -> [(RedFlags, String)] {
+    private func performFlagMatching() async -> [(RedFlags, String)] {
         let matches = RedFlagMatcher.matches(for: interaction)
         guard !matches.isEmpty else { return [] }
         
         let request: NSFetchRequest<RedFlags> = RedFlags.fetchRequest()
         let categories = matches.map { $0.category }
-        
         request.predicate = NSPredicate(format: "category IN %@", categories)
         
         let fetched = (try? viewContext.fetch(request)) ?? []
         
+        var needsSave = false
         for redFlag in fetched where !redFlag.wasMatched {
-                redFlag.wasMatched = true
-            }
+            redFlag.wasMatched = true
+            needsSave = true
+        }
         
+        if needsSave {
             try? viewContext.save()
+        }
         
         return fetched.compactMap { redFlag in
             matches.first(where: { $0.category == redFlag.category }).map {
                 (redFlag, $0.reason)
             }
         }
+    }
+    
+    private func redFlagSuggestionsSection() -> some View {
+        guard !suggestions.isEmpty else { return AnyView(EmptyView()) }
+        
+        return AnyView(
+            DisclosureGroup("Possible Patterns to Explore") {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(suggestions.indices, id: \.self) { index in
+                        let redFlag = suggestions[index].0
+                        let reason = suggestions[index].1
+                        
+                        NavigationLink {
+                            RedFlagDetailView(redFlag: redFlag)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(redFlag.category ?? "")
+                                    .font(.headline)
+                                    .foregroundColor(themeManager.color("PrimaryText"))
+                                
+                                Text(reason)
+                                    .font(.footnote)
+                                    .foregroundColor(themeManager.color("SecondaryText"))
+                            }
+                        }
+                    }
+                }
+                .padding(.top, 8)
+            }
+                .padding(.top, 16)
+        )
     }
 }

@@ -38,56 +38,47 @@ struct JournalTabView: View {
     
     var body: some View {
         NavigationStack {
-            if entries.isEmpty {
-                EmptyStateView(
-                    title: "No Journal Entries",
-                    message: "Start tracking your thoughts and reflections to build your awareness over time.",
-                    systemImage: "book.closed"
-                )
-            } else {
-                List {
-                    ForEach(searchResults) { entry in
-                        NavigationLink {
-                            SecureView {
+            ZStack {
+                if entries.isEmpty {
+                    EmptyStateView(
+                        title: "No Journal Entries",
+                        message: "Start tracking your thoughts and reflections to build your awareness over time.",
+                        systemImage: "book.closed"
+                    )
+                } else {
+                    List {
+                        ForEach(searchResults) { entry in
+                            NavigationLink {
                                 JournalDetailView(journalEntry: entry)
+                            } label: {
+                                VStack {
+                                    JournalRowCard(entry: entry)
+                                }
+                                .padding()
+                                .background(themeManager.color("CardFill"))
+                                .cornerRadius(16)
+                                
                             }
-                        } label: {
-                            VStack {
-                                JournalRowCard(entry: entry)
-                            }
-                            .padding()
-                            .background(themeManager.color("CardFill"))
-                            .cornerRadius(16)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                             
                         }
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        
+                        .onDelete { offsets in
+                            indexSetToDelete = offsets
+                            showingDeleteConfirmation = true
+                        }
                     }
-                    .onDelete { offsets in
-                        indexSetToDelete = offsets
-                        showingDeleteConfirmation = true
-                    }
+                    .searchable(text: $searchText, prompt: "Search journal entries, key words, or emotion tags")
                 }
-                .searchable(text: $searchText, prompt: "Search journal entries, key words, or emotion tags")
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .background(themeManager.color("PrimaryBackground"))
-                .trackMateNav(title: "Journal", themeManager: themeManager)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink(destination: DraftsListView()) {
-                            Text("Drafts")
-                                .foregroundColor(themeManager.color("AccentColor"))
-                        }
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink(destination: NewJournalEntryView()) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(themeManager.color("AccentColor"))
-                        }
+            }
+            .background(themeManager.color("PrimaryBackground"))
+            .trackMateNav(title: "Journal", themeManager: themeManager)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(destination: NewJournalEntryView()) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(themeManager.color("AccentColor"))
                     }
                 }
             }
