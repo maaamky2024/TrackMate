@@ -15,8 +15,9 @@ struct TrackMateApp: App {
     @AppStorage("hasConsentedToPrivacy")
     private var hasConsented = false
     
+    @StateObject private var themeManager = ThemeManager.shared
+    
     var body: some Scene {
-        let themeManager = ThemeManager()
         WindowGroup {
             if hasConsented {
                 ContentView()

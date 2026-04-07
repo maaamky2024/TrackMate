@@ -55,11 +55,17 @@ struct InteractionDetailView: View {
         }
         .background(themeManager.color("PrimaryBackground"))
         .navigationBarBackButtonHidden()
-        .task {
-            guard !hasProcessedFlags else { return }
-            
-            hasProcessedFlags = true
-            
+	   .task {
+		   let shouldRun = await MainActor.run { () -> Bool in
+			   if !hasProcessedFlags {
+					hasProcessedFlags = true
+					return true
+		   } else {
+			   return false
+		   }
+	   }
+	    guard shouldRun else { return }
+	    
             let matchedResults = await performFlagMatching()
             
             await MainActor.run {
@@ -153,7 +159,7 @@ struct InteractionDetailView: View {
             reflectionRow(
                 question: "1.) Were you respected?",
                 answer: interaction.didFeelRespected ?? "-")
-            foregroundColor(themeManager.color("SecondaryText"))
+		  .foregroundColor(themeManager.color("SecondaryText"))
             
             reflectionRow(
                 question: "2.) Were your boundaries respected?",
@@ -231,6 +237,7 @@ struct InteractionDetailView: View {
         )
     }
     
+	@MainActor
     private func performFlagMatching() async -> [(RedFlags, String)] {
         let matches = RedFlagMatcher.matches(for: interaction)
         guard !matches.isEmpty else { return [] }

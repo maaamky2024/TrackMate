@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EE2B25312F84465B009E6CD5 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = EE2B25302F84465B009E6CD5 /* FirebaseAILogic */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		EEB413A72DA5770E00B19EF5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EE2B25312F84465B009E6CD5 /* FirebaseAILogic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = TrackMate;
 			packageProductDependencies = (
+				EE2B25302F84465B009E6CD5 /* FirebaseAILogic */,
 			);
 			productName = TrackMate;
 			productReference = EEB413922DA5770C00B19EF5 /* TrackMate.app */;
@@ -211,6 +217,9 @@
 			);
 			mainGroup = EEB413892DA5770B00B19EF5;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				EE2B252F2F84465B009E6CD5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EEB413932DA5770C00B19EF5 /* Products */;
 			projectDirPath = "";
@@ -299,6 +308,8 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TrackMate/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "TrackMate values your safety and privacy. We use faceID to help ensure that nobody else can see or access your journal entries.  ";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -332,6 +343,8 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TrackMate/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "TrackMate values your safety and privacy. We use faceID to help ensure that nobody else can see or access your journal entries.  ";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -586,6 +599,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EE2B252F2F84465B009E6CD5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.11.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EE2B25302F84465B009E6CD5 /* FirebaseAILogic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EE2B252F2F84465B009E6CD5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAILogic;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EEB4138A2DA5770B00B19EF5 /* Project object */;
 }
