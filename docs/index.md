@@ -17,7 +17,7 @@ Welcome to the official support site for TrackMate. Here you’ll find answers t
    - Tap **Interactions** → **+ New Interaction**.  
    - Enter the person's or group's name.
    - Select the type of interaction you had with them.
-   - Write a note about the interaction that you might want to remnember.
+   - Write a note about the interaction that you might want to remember.
    - Select emotion tags that resonate with how you felt during the interaction.
    - Answer the three reflective questions about the interaction.  
    - Save to add it to your interaction history.
