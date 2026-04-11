@@ -19,6 +19,21 @@ struct InteractionsTabView: View {
    
     @State private var indexSetToDelete: IndexSet?
     @State private var showingDeleteConfirmation = false
+    @State private var searchText: String = ""
+    
+    private var searchResults: [Interaction] {
+        if searchText.isEmpty { return Array(interactions) }
+        return interactions.filter { interaction in
+            let content = interaction.notes ?? ""
+            let person = interaction.personName ?? ""
+            let type = interaction.interactionType ?? ""
+            let tags = (interaction.emotionTags as? [String]) ?? []
+            return content.localizedCaseInsensitiveContains(searchText)
+                || person.localizedCaseInsensitiveContains(searchText)
+                || type.localizedCaseInsensitiveContains(searchText)
+                || tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
     
     private var zeroStateMessage: String {
         let count = interactions.count
@@ -46,7 +61,7 @@ struct InteractionsTabView: View {
                }
                .listSectionSeparator(.hidden)
                 
-                ForEach(interactions) { interaction in
+                ForEach(searchResults) { interaction in
                     NavigationLink {
                             InteractionDetailView(interaction: interaction)
 
@@ -70,6 +85,7 @@ struct InteractionsTabView: View {
                 }
             }
             .listStyle(.plain)
+            .searchable(text: $searchText, prompt: "Search interactions, names, types, or emotion tags")
             .scrollContentBackground(.hidden)
             .background(themeManager.color("PrimaryBackground"))
             .trackMateNav(title: "Interactions", themeManager: themeManager)
@@ -107,3 +123,4 @@ struct InteractionsTabView: View {
         }
     }
 }
+
