@@ -18,14 +18,14 @@ class InteractionViewModel: ObservableObject {
 		let textToSave = journalText
 		let timeStamp = Date()
 		
-		let analysisResult = finder.analyze(textToSave)
+		let analysisResult = finder.predict(text: textToSave)
 		
 		let newInteraction = Interaction(context: context)
-		newInteraction.text = textToSave
-		newInteraction.date = timeStamp
+		newInteraction.notes = textToSave
+		newInteraction.timestamp = timeStamp
 		
 		if analysisResult.confidence > 0.70 {
-			NewInteraction.detectedRedFlag = analysisResult.label
+			newInteraction.detectedRedFlag = analysisResult.label
 			newInteraction.flagConfidence = analysisResult.confidence
 			print("Saved with Flag: \(analysisResult.label) (\(Int(analysisResult.confidence * 100))%)")
 		} else {

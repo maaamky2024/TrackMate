@@ -10,10 +10,15 @@ import CoreData
 
 struct PatternAnalysisService {
 	static func buildAnalysisPayload(for contact: Contact, context: NSManagedObjectContext) async -> String? {
+		let contactID = contact.objectID
 		
 		return  await context.perform {
+			guard let localContact = try? context.existingObject(with: contactID) as? Contact else {
+				return nil
+			}
+			
 			let request: NSFetchRequest<Interaction> = Interaction.fetchRequest()
-			request.predicate = NSPredicate(format: "contact == %@", contact)
+			request.predicate = NSPredicate(format: "contact == %@", localContact)
 			request.sortDescriptors = [NSSortDescriptor(keyPath: \Interaction.timestamp, ascending: false)]
 			request.fetchLimit = 10
 			
@@ -23,7 +28,7 @@ struct PatternAnalysisService {
 			
 			let chronologicalInteractions = Array(recentInteractions.reversed())
 			
-			return assemblePrompt(contactName: contact.name ?? "Unknown", interactions: chronologicalInteractions, context: context)
+			return assemblePrompt(contactName: localContact.name ?? "Unknown", interactions: chronologicalInteractions, context: context)
 		}
 	}
 	

@@ -198,8 +198,8 @@ struct NewInteractionEntryView: View {
     private func analyzeText(_ text: String) -> AIResult? {
         // Try common APIs in priority order. Commented branches can be uncommented if available.
         // If RedFlagFinder has a synchronous classify(text:) -> (label: String, confidence: Double)
-        if let classifier = aiFinder as? AnyObject,
-           classifier.responds?(to: Selector(("classifyText:"))) == true {
+	    let classifier: AnyObject = aiFinder
+	    if classifier.responds(to: Selector(("classifyText:"))) {
             // Not invokable directly without knowing signature; fall through to no-op.
         }
         // If RedFlagFinder has a method `classify(_:)` returning a tuple

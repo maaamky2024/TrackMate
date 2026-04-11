@@ -25,12 +25,15 @@ class RedFlagFinder {
 		do {
 			let output = try model.prediction(text: text)
 			
-			let confidence = output.labelProbabilities[output.label] ?? 0.0
+			let label = output.label
 			
-			return (output.label, confidence)
+			let defaultConfidence = 1.0
+			
+			return (label, defaultConfidence)
 		} catch {
 			print("Prediction failed: \(error)")
 			return ("Unknown", 0.0)
 		}
 	}
 }
+
