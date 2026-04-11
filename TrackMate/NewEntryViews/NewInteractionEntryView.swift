@@ -46,12 +46,11 @@ struct NewInteractionEntryView: View {
                     TextField("", text: $personName)
                         .foregroundColor(themeManager.color("PrimaryText"))
                         .placeholder(when: personName.isEmpty) {
-                            Text("Entry name or group...")
+                            Text("Enter name or group")
                                 .foregroundColor(themeManager.color("SecondaryText"))
                                 .padding(.leading, 8)
                         }
                 }
-                .listRowBackground(themeManager.color("CardFill"))
                 
                 // MARK: - Type
                 Section(header: sectionHeader("Interaction Type")) {
@@ -60,25 +59,23 @@ struct NewInteractionEntryView: View {
                             Text(type).tag(type)
                         }
                     }
-                    .pickerStyle(.menu)
-                    .foregroundColor(themeManager.color("PrimaryText"))
-                    .tint(themeManager.color("AccentColor"))
+                    .pickerStyle(MenuPickerStyle())
+                    .tint(themeManager.color("SecondaryText"))
                 }
-                .listRowBackground(themeManager.color("CardFill"))
-                
                 
                 // MARK: - Notes
                 Section(header: sectionHeader("Notes")) {
                     TextEditor(text: $notes)
-                        .frame(minHeight: 110)
-                        .foregroundColor(themeManager.color("PrimaryText"))
+                        .frame(height: 100)
+                        .foregroundColor(themeManager.color("SecondaryText"))
+                        .padding(4)
+                        .cornerRadius(8)
                         .placeholder(when: notes.isEmpty) {
                             Text("Describe what happened...")
                                 .foregroundColor(themeManager.color("SecondaryText"))
                                 .padding(.leading, 8)
                         }
                 }
-                .listRowBackground(themeManager.color("CardFill"))
                 
                 // MARK: - Emotion Tags
                 Section(header: sectionHeader ("Emotion Tags")) {
@@ -110,7 +107,6 @@ struct NewInteractionEntryView: View {
                         }
                     }
                 }
-                .listRowBackground(themeManager.color("CardFill"))
                 
                 // MARK: - Reflection questions
                 Section(header: sectionHeader("Reflective Questions")) {
@@ -129,7 +125,6 @@ struct NewInteractionEntryView: View {
                         selection: $didFeelEmotionallySafe
                     )
                 }
-                .listRowBackground(themeManager.color("CardFill"))
             }
             .scrollContentBackground(.hidden)
             .background(themeManager.color("PrimaryBackground"))
@@ -179,8 +174,9 @@ struct NewInteractionEntryView: View {
                 ForEach(responseOptions, id: \.self) { option in                    Text(option).tag(option)
                 }
             }
-            .pickerStyle(.segmented)
-            .tint(themeManager.color("AccentColor"))
+            .pickerStyle(SegmentedPickerStyle())
+            
+            .foregroundColor(themeManager.color("SecondaryText"))
         }
         .padding(.vertical, 6)
     }
