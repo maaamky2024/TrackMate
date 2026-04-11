@@ -49,23 +49,10 @@ struct RedFlagsLibraryView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                                 }
                             }
-                            
-                            Spacer()
-                            
-                            Image(systemName: redFlag.isFavorite ? "star.fill" : "star")
-                                .foregroundColor(themeManager.color("AccentColor"))
                         }
                         .padding(.vertical, 10)
                     }
                     .listRowBackground(themeManager.color("CardFill"))
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button {
-                            toggleFavorite(for: redFlag)
-                        } label: {
-                            Label("Favorite", systemImage: redFlag.isFavorite ? "star.slash" : "star")
-                        }
-                        .tint(themeManager.color("AccentColor"))
-                    }
                 }
                 .onDelete(perform: deleteRedFlags)
             }
@@ -78,12 +65,6 @@ struct RedFlagsLibraryView: View {
     
     
     // MARK: - Helper Functions
-    
-    /// Tpgg;es the favorite status of a Redflags entry and saves the context
-    private func toggleFavorite(for redFlag: RedFlags) {
-        redFlag.isFavorite.toggle()
-        saveContext()
-    }
     
     /// Deletes red flag entries from Core Data
     private func deleteRedFlags(offsets: IndexSet) {
@@ -100,3 +81,4 @@ struct RedFlagsLibraryView: View {
         }
     }
 }
+

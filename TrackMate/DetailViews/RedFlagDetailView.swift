@@ -100,11 +100,6 @@ struct RedFlagDetailView: View {
                     .foregroundColor(themeManager.color("PrimaryText"))
             }
             
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Image(systemName: redFlag.isFavorite ? "star.fill" : "star")
-                    .foregroundColor(themeManager.color("AccentColor"))
-            }
-            
             ToolbarItem(placement: .navigationBarLeading) {
                 Button("Back") {
                    dismiss()
@@ -115,4 +110,3 @@ struct RedFlagDetailView: View {
         .background(themeManager.color("BackgroundThree"))
     }
 }
-
