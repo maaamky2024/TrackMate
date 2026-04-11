@@ -69,6 +69,9 @@ struct JournalTabView: View {
                             showingDeleteConfirmation = true
                         }
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .background(themeManager.color("PrimaryBackground"))
                     .searchable(text: $searchText, prompt: "Search journal entries, key words, or emotion tags")
                 }
             }
@@ -106,3 +109,4 @@ struct JournalTabView: View {
         }
     }
 }
+
