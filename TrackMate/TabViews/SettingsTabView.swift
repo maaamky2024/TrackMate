@@ -15,8 +15,6 @@ struct SettingsTabView: View {
     @State private var showingRestoreResult = false
     @State private var restoreResultMessage = ""
     
-    @AppStorage("requireAppLock") private var requireAppLock = true
-    
     private enum Route: Hashable {
         case theme
     }
@@ -39,21 +37,23 @@ struct SettingsTabView: View {
                 
                 // MARK: - Privacy
                 Section(header: Text("Privacy & Data")) {
-                    NavigationLink("Privacy Notice") {
+                    NavigationLink {
                         PrivacyNoticeView(requireAcceptance: false)
                             .environmentObject(themeManager)
+                    } label: {
+                        Text("Privacy Notice")
+                            .foregroundColor(themeManager.color("PrimaryText"))
                     }
                     
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("• Your entries are stored and encrypted on your device.")
-                        Text("• If iCloud sync is enabled, Apple manages syncing through your Apple ID.")
-                        Text("• None of your information is sold or shared by TrackMate or any third-party service.")
+                        Text("• Your data stays on-device by default and is encrypted by iOS.")
+                        Text("• If you enable iCloud for this app, Apple syncs your data securely with your Apple ID.")
+                        Text("• We don’t collect analytics about your entries. No ads. No selling of data.")
+                        Text("• You can export or delete your data at any time from the app settings (coming soon).")
                     }
                     .font(.footnote)
                     .foregroundColor(themeManager.color("SecondaryText"))
                     .padding(.vertical, 6)
-                    
-                    Toggle("Require App Lock", isOn: $requireAppLock)
                 }
                 .textCase(nil)
                 // MARK: - Account
@@ -73,3 +73,4 @@ struct SettingsTabView: View {
         }
     }
 }
+
