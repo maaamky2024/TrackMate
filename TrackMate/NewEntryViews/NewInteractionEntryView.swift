@@ -46,11 +46,12 @@ struct NewInteractionEntryView: View {
                     TextField("", text: $personName)
                         .foregroundColor(themeManager.color("PrimaryText"))
                         .placeholder(when: personName.isEmpty) {
-                            Text("Enter name or group")
+                            Text("Entry name or group...")
                                 .foregroundColor(themeManager.color("SecondaryText"))
                                 .padding(.leading, 8)
                         }
                 }
+                .listRowBackground(themeManager.color("CardFill"))
                 
                 // MARK: - Type
                 Section(header: sectionHeader("Interaction Type")) {
@@ -59,23 +60,25 @@ struct NewInteractionEntryView: View {
                             Text(type).tag(type)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
-                    .tint(themeManager.color("SecondaryText"))
+                    .pickerStyle(.menu)
+                    .foregroundColor(themeManager.color("PrimaryText"))
+                    .tint(themeManager.color("AccentColor"))
                 }
+                .listRowBackground(themeManager.color("CardFill"))
+                
                 
                 // MARK: - Notes
                 Section(header: sectionHeader("Notes")) {
                     TextEditor(text: $notes)
-                        .frame(height: 100)
-                        .foregroundColor(themeManager.color("SecondaryText"))
-                        .padding(4)
-                        .cornerRadius(8)
+                        .frame(minHeight: 110)
+                        .foregroundColor(themeManager.color("PrimaryText"))
                         .placeholder(when: notes.isEmpty) {
                             Text("Describe what happened...")
                                 .foregroundColor(themeManager.color("SecondaryText"))
                                 .padding(.leading, 8)
                         }
                 }
+                .listRowBackground(themeManager.color("CardFill"))
                 
                 // MARK: - Emotion Tags
                 Section(header: sectionHeader ("Emotion Tags")) {
@@ -107,6 +110,7 @@ struct NewInteractionEntryView: View {
                         }
                     }
                 }
+                .listRowBackground(themeManager.color("CardFill"))
                 
                 // MARK: - Reflection questions
                 Section(header: sectionHeader("Reflective Questions")) {
@@ -125,6 +129,7 @@ struct NewInteractionEntryView: View {
                         selection: $didFeelEmotionallySafe
                     )
                 }
+                .listRowBackground(themeManager.color("CardFill"))
             }
             .scrollContentBackground(.hidden)
             .background(themeManager.color("PrimaryBackground"))
@@ -174,9 +179,8 @@ struct NewInteractionEntryView: View {
                 ForEach(responseOptions, id: \.self) { option in                    Text(option).tag(option)
                 }
             }
-            .pickerStyle(SegmentedPickerStyle())
-            
-            .foregroundColor(themeManager.color("SecondaryText"))
+            .pickerStyle(.segmented)
+            .tint(themeManager.color("AccentColor"))
         }
         .padding(.vertical, 6)
     }
@@ -197,6 +201,23 @@ struct NewInteractionEntryView: View {
         newEntry.didFeelRespected = didFeelRespected
         newEntry.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
         newEntry.didFeelEmotionallySafe = didFeelEmotionallySafe
+	    
+	    let contactRequest: NSFetchRequest<Contact> = Contact.fetchRequest()
+	    contactRequest.predicate = NSPredicate(format: "name == [c] %@", personName)
+	    contactRequest.fetchLimit = 1
+	    
+	    let resolvedContact: Contact
+	    if let existingContacts = try? viewContext.fetch(contactRequest), let first = existingContacts.first {
+		    resolvedContact = first
+	    } else {
+		    resolvedContact = Contact(context: viewContext)
+		    resolvedContact.id = UUID()
+		    resolvedContact.name = personName
+		    resolvedContact.creationDate = Date()
+	    }
+	    
+	    newEntry.contact = resolvedContact
+	    newEntry.personName = resolvedContact.name
         
         do {
             try viewContext.save()
@@ -215,6 +236,18 @@ struct NewInteractionEntryView: View {
                     dismiss()
                 }
             }
+		   let contactID = resolvedContact.objectID
+		   Task {
+			   
+			   let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+
+			   if let backgroundContact = try? backgroundContext.existingObject(with: contactID) as? Contact {
+				   
+				   if let payload = await PatternAnalysisService.buildAnalysisPayload(for: backgroundContact, context: backgroundContext) {
+					   print("Payload generated: \n\(payload)")
+				   }
+			   }
+		   }
         } catch {
             print("Error saving entry: \(error.localizedDescription)")
         }
