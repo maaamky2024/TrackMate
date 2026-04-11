@@ -18,6 +18,24 @@ struct InteractionDetailView: View {
     @State private var hasProcessedFlags = false
     @State private var showingEdit = false
     @State private var suggestions: [(RedFlags, String)] = []
+    @State private var showingLinkJournalSheet = false
+    @State private var journalSearchText = ""
+    
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)],
+        predicate: NSPredicate(format: "isDraft == NO")
+    )
+    private var allJournalEntries: FetchedResults<JournalEntry>
+    
+    private var journalSearchResults: [JournalEntry] {
+        if journalSearchText.isEmpty { return Array(allJournalEntries) }
+        return allJournalEntries.filter { entry in
+            let content = entry.content ?? ""
+            let tags = (entry.emotionTags as? [String]) ?? []
+            return content.localizedCaseInsensitiveContains(journalSearchText)
+                || tags.contains { $0.localizedCaseInsensitiveContains(journalSearchText) }
+        }
+    }
     
     // MARK: - Date formatter
     private let dateFormatter: DateFormatter = {
@@ -74,20 +92,70 @@ struct InteractionDetailView: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingLinkJournalSheet = true
+                } label: {
+                    Image(systemName: "link")
+                }
+                .foregroundColor(themeManager.color("AccentColor"))
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Edit") {
                     showingEdit = true
                 }
-                        .foregroundColor(themeManager.color("AccentColor"))
-                }
-                
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Back") { dismiss() }
-                        .foregroundColor(themeManager.color("AccentColor"))
-                }
+                .foregroundColor(themeManager.color("AccentColor"))
             }
+                
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Back") { dismiss() }
+                    .foregroundColor(themeManager.color("AccentColor"))
+            }
+        }
         .sheet(isPresented: $showingEdit) {
             EditInteractionView(interaction: interaction)
                 .environment(\.managedObjectContext, viewContext)
+        }
+        .sheet(isPresented: $showingLinkJournalSheet) {
+            NavigationStack {
+                List(journalSearchResults) { entry in
+                    Button {
+                        entry.linkedInteraction = interaction
+                        try? viewContext.save()
+                        showingLinkJournalSheet = false
+                    } label: {
+                        HStack(alignment: .top, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text((entry.content ?? "Untitled Entry").trimmingCharacters(in: .whitespacesAndNewlines))
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundColor(themeManager.color("PrimaryText"))
+                                    .lineLimit(2)
+                                if let ts = entry.timestamp {
+                                    Text(ts, style: .date)
+                                        .font(.caption)
+                                        .foregroundColor(themeManager.color("SecondaryText"))
+                                }
+                            }
+                            Spacer()
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(themeManager.color("AccentColor"))
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(themeManager.color("CardFill"))
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(themeManager.color("PrimaryBackground"))
+                .searchable(text: $journalSearchText, prompt: "Search journal entries or tags")
+                .trackMateNav(title: "Link Journal Entry", themeManager: themeManager)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showingLinkJournalSheet = false }
+                            .foregroundColor(themeManager.color("AccentColor"))
+                    }
+                }
+            }
         }
         .trackMateNav(title: "Interaction Details", themeManager: themeManager)
     }
@@ -296,3 +364,4 @@ struct InteractionDetailView: View {
         )
     }
 }
+
