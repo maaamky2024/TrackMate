@@ -38,6 +38,10 @@ struct PersistenceController {
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
+	    
+	    let description = container.persistentStoreDescriptions.first
+	    description?.shouldMigrateStoreAutomatically = true
+	    description?.shouldInferMappingModelAutomatically = true
         
         let viewContext = container.viewContext
         
