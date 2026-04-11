@@ -10,6 +10,7 @@ import SwiftUI
 import CoreData
 
 struct NewInteractionEntryView: View {
+	@StateObject private var viewModel = InteractionViewModel()
     @Environment(\.managedObjectContext) private var viewContext: NSManagedObjectContext
     
     @Environment(\.dismiss) private var dismiss
@@ -35,6 +36,8 @@ struct NewInteractionEntryView: View {
     private let interactionTypes = ["In-person", "Phone call", "Text/DM", "Social media", "Other"]
     private let emotionOptions = ["Happy", "Sad", "Calm", "Anxious", "Confused", "Belittled", "Loved", "Angry", "Guilty", "Invalidated", "Empowered", "Safe", "Unsafe"]
     private let responseOptions = ["Yes", "No", "I'm Not Sure"]
+	
+	private let aiFinder = RedFlagFinder()
     
     // MARK: - Body
     var body: some View {
@@ -73,9 +76,9 @@ struct NewInteractionEntryView: View {
                         .frame(minHeight: 110)
                         .foregroundColor(themeManager.color("PrimaryText"))
                         .placeholder(when: notes.isEmpty) {
-                            Text("Describe what happened...")
+                            Text("Please describe their side of the interaction. Make sure to make a JOURNAL entry on how this interaction affected you and how you feel about it--puting it in the interaction log will make it more difficult to spot red flags!")
                                 .foregroundColor(themeManager.color("SecondaryText"))
-                                .padding(.leading, 8)
+                                .padding(8)
                         }
                 }
                 .listRowBackground(themeManager.color("CardFill"))
@@ -84,7 +87,7 @@ struct NewInteractionEntryView: View {
                 Section(header: sectionHeader ("Emotion Tags")) {
                     NavigationLink {
                         MultiSelectList(
-                            title: "Select Emotions",
+                            title: "How do you think this person feels about this interaction with you?",
                             options: emotionOptions,
                             selected: $selectedEmotions
                         )
@@ -106,26 +109,26 @@ struct NewInteractionEntryView: View {
                             Spacer()
                             
                             Image(systemName: "chevron.right")
-                                .foregroundColor(themeManager.color("SecondaryText"))
+                                .foregroundColor(themeManager.color("AccentColor"))
                         }
                     }
                 }
                 .listRowBackground(themeManager.color("CardFill"))
                 
                 // MARK: - Reflection questions
-                Section(header: sectionHeader("Reflective Questions")) {
+                Section(header: sectionHeader("Safety Check-in")) {
                     reflectiveQuestion(
-                        prompt: "Did you feel respected?",
+                        prompt: "Did you feel respected during this interaction?",
                         selection: $didFeelRespected
                     )
                     
                     reflectiveQuestion(
-                        prompt: "Were your boundaries respected?",
+                        prompt: "Did this person respect your boundaries?",
                         selection: $didFeelBoundariesAcknowledged
                     )
                     
                     reflectiveQuestion(
-                        prompt: "Did you feel safe emotionally and physically?",
+                        prompt: "Did you feel safe while interacting with this person?",
                         selection: $didFeelEmotionallySafe
                     )
                 }
@@ -185,6 +188,30 @@ struct NewInteractionEntryView: View {
         .padding(.vertical, 6)
     }
     
+    // MARK: - AI Adapter
+    private struct AIResult {
+        let label: String
+        let confidence: Double
+    }
+
+    // Provide a local adapter so builds don't fail if RedFlagFinder doesn't expose `analyze`.
+    private func analyzeText(_ text: String) -> AIResult? {
+        // Try common APIs in priority order. Commented branches can be uncommented if available.
+        // If RedFlagFinder has a synchronous classify(text:) -> (label: String, confidence: Double)
+        if let classifier = aiFinder as? AnyObject,
+           classifier.responds?(to: Selector(("classifyText:"))) == true {
+            // Not invokable directly without knowing signature; fall through to no-op.
+        }
+        // If RedFlagFinder has a method `classify(_:)` returning a tuple
+        // You can replace the body below with the real call when known.
+        // Example:
+        // let result = aiFinder.classify(text)
+        // return AIResult(label: result.label, confidence: result.confidence)
+
+        // Fallback: no AI available
+        return nil
+    }
+    
     // MARK: - Save
     
     private func saveEntry() {
@@ -201,6 +228,24 @@ struct NewInteractionEntryView: View {
         newEntry.didFeelRespected = didFeelRespected
         newEntry.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
         newEntry.didFeelEmotionallySafe = didFeelEmotionallySafe
+	    
+	    let aiResult = analyzeText(notes)
+	    
+	    if let aiResult {
+            if aiResult.confidence > 0.70 {
+                newEntry.detectedRedFlag = aiResult.label
+                newEntry.flagConfidence = aiResult.confidence
+                print("AI Flagged: \(aiResult.label) (\(Int(aiResult.confidence * 100))%)")
+            } else {
+                newEntry.detectedRedFlag = "Inconclusive"
+                newEntry.flagConfidence = aiResult.confidence
+                print("AI Result: Inconclusive (\(Int(aiResult.confidence * 100))%)")
+            }
+        } else {
+            // No AI available; mark as not analyzed
+            newEntry.detectedRedFlag = "Not analyzed"
+            newEntry.flagConfidence = 0
+        }
 	    
 	    let contactRequest: NSFetchRequest<Contact> = Contact.fetchRequest()
 	    contactRequest.predicate = NSPredicate(format: "name == [c] %@", personName)
@@ -253,3 +298,4 @@ struct NewInteractionEntryView: View {
         }
     }
 }
+

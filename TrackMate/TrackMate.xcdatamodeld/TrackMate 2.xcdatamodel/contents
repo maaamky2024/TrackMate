@@ -8,10 +8,12 @@
         <relationship name="interactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Interaction" inverseName="contact" inverseEntity="Interaction"/>
     </entity>
     <entity name="Interaction" representedClassName="Interaction" syncable="YES" codeGenerationType="class">
+        <attribute name="detectedRedFlag" optional="YES" attributeType="String"/>
         <attribute name="didFeelBoundariesAcknowledged" optional="YES" attributeType="String"/>
         <attribute name="didFeelEmotionallySafe" optional="YES" attributeType="String"/>
         <attribute name="didFeelRespected" optional="YES" attributeType="String"/>
         <attribute name="emotionTags" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
+        <attribute name="flagConfidence" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="interactionType" optional="YES" attributeType="String"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
