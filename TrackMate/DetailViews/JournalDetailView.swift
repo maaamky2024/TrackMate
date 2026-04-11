@@ -20,6 +20,28 @@ struct JournalDetailView: View {
     
     @State private var showingEdit = false
     
+    @State private var showingLinkInteractionSheet = false
+    @State private var interactionSearchText = ""
+    
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Interaction.timestamp, ascending: false)]
+    )
+    private var allInteractions: FetchedResults<Interaction>
+    
+    private var interactionSearchResults: [Interaction] {
+        if interactionSearchText.isEmpty { return Array(allInteractions) }
+        return allInteractions.filter { inter in
+            let notes = inter.notes ?? ""
+            let person = inter.personName ?? ""
+            let type = inter.interactionType ?? ""
+            let tags = (inter.emotionTags as? [String]) ?? []
+            return notes.localizedCaseInsensitiveContains(interactionSearchText)
+                || person.localizedCaseInsensitiveContains(interactionSearchText)
+                || type.localizedCaseInsensitiveContains(interactionSearchText)
+                || tags.contains { $0.localizedCaseInsensitiveContains(interactionSearchText) }
+        }
+    }
+    
     // Date formatter for display purposes
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -98,10 +120,18 @@ struct JournalDetailView: View {
             .padding()
         }
         .trackMateNav(title: "Journal Entry Details", themeManager: themeManager)
+        .navigationBarBackButtonHidden()
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button("Back") {
+                Button("back") {
                     dismiss()
+                }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingLinkInteractionSheet = true
+                } label: {
+                    Image(systemName: "link")
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -111,6 +141,52 @@ struct JournalDetailView: View {
         .sheet(isPresented: $showingEdit) {
             EditJournalEntryView(journalEntry: journalEntry)
                 .environment(\.managedObjectContext, viewContext)
+        }
+        .sheet(isPresented: $showingLinkInteractionSheet) {
+            NavigationStack {
+                List(interactionSearchResults) { inter in
+                    Button {
+                        journalEntry.linkedInteraction = inter
+                        try? viewContext.save()
+                        showingLinkInteractionSheet = false
+                    } label: {
+                        HStack(alignment: .top, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(inter.personName ?? "Unknown")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundColor(themeManager.color("PrimaryText"))
+                                    .lineLimit(1)
+                                if let ts = inter.timestamp {
+                                    Text(ts, style: .date)
+                                        .font(.caption)
+                                        .foregroundColor(themeManager.color("SecondaryText"))
+                                }
+                                Text((inter.notes ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
+                                    .font(.caption)
+                                    .foregroundColor(themeManager.color("SecondaryText"))
+                                    .lineLimit(2)
+                            }
+                            Spacer()
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(themeManager.color("AccentColor"))
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(themeManager.color("CardFill"))
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(themeManager.color("PrimaryBackground"))
+                .searchable(text: $interactionSearchText, prompt: "Search interactions")
+                .trackMateNav(title: "Link Interaction", themeManager: themeManager)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showingLinkInteractionSheet = false }
+                            .foregroundColor(themeManager.color("AccentColor"))
+                    }
+                }
+            }
         }
     }
 }
