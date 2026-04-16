@@ -16,7 +16,7 @@ struct AutomatedInsightCard: View {
 			
 			HStack {
 				Image(systemName: "exclamationmark.shield.fill")
-					.foregroundColor(thememanager.color("AccentColor"))
+					.foregroundColor(themeManager.color("AccentColor"))
 				Text("Pattern Detected")
 					.font(.headline)
 					.foregroundColor(themeManager.color("PrimaryText"))
@@ -26,20 +26,29 @@ struct AutomatedInsightCard: View {
 			
 			VStack(alignment: .leading, spacing: 12) {
 				Text("CiraBot identified a recurring pattern in your entries.")
-					.font(.subheadlione)
+					.font(.subheadline)
 					.foregroundColor(themeManager.color("SecondaryText"))
 				
 				VStack(alignment: .leading, spacing: 8) {
-					Group {
-						Text("Offender: ").bold() + Text(report.offenderName)
+					HStack(spacing: 0) {
+						Text("Offender: ").bold()
+						Text(report.offenderName)
 					}
 					
-					Group {
-						Text("Pattern: ").bold() + Text("Used ") + Text(report.primaryTactic).bold().foregroundColor(.red) + Text(" \(report.incidentCount) times.")
+					HStack(spacing: 0) {
+						Text("Pattern: ").bold()
+						Text("Used ")
+						Text(report.primaryTactic)
+							.bold()
+							.foregroundColor(.red)
+						Text(" \(report.incidentCount) times.")
 					}
 					
-					Group {
-						Text("Pattern: ").bold() + Text("Happens most frequently during ") + Text(report.primaryMedium).bold() + Text(".")
+					HStack(spacing: 0) {
+						Text("Pattern: ").bold()
+						Text("Happens most frequently during ")
+						Text(report.primaryMedium).bold()
+						Text(".")
 					}
 				}
 			}
@@ -56,7 +65,7 @@ struct AutomatedInsightCard: View {
 							Text(firstTip)
 								.font(.subheadline)
 								.foregroundColor(themeManager.color("PrimaryText"))
-								.fixedSize(horizontal: flase, vertical: true)
+								.fixedSize(horizontal: false, vertical: true)
 						}
 						.padding(.vertical, 4)
 					}
@@ -90,9 +99,8 @@ struct AutomatedInsightCard: View {
 		.cornerRadius(16)
 		.shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
 		.overlay(
-			RoundedRectangle(cornerRadius: 16
-				.strock(themeManager.color("AccentColor").opacity(0.3), lineWidth: 1)
+			RoundedRectangle(cornerRadius: 16)
+				.stroke(themeManager.color("AccentColor").opacity(0.3), lineWidth: 1)
 			)
-		)
 	}
 }

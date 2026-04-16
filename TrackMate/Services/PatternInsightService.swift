@@ -68,7 +68,7 @@ class PatternInsightService {
 		
 		do {
 			let data = try Data(contentsOf: url)
-			let allResources = try JSONDecoder().decode([ReFlagResourceData].self, from: data)
+			let allResources = try JSONDecoder().decode([RedFlagResourceData].self, from: data)
 			
 			return allResources.first { $0.category.lowercased() == tactic.lowercased() }
 		} catch {
