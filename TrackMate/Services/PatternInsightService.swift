@@ -8,22 +8,6 @@
 import Foundation
 import SwiftUI
 
-struct AppResource: Codable {
-	let category: String
-	let description: String
-	let examples: [String]
-	let tips: [String]
-	let scripts: [String]
-	let resources: [String]
-}
-struct PatternReport {
-	let offenderName: String
-	let primaryTactic: String
-	let primaryMedium: String
-	let incidentCount: Int
-	let suggestedResource: RedFlagResourceData?
-}
-
 class PatternInsightService {
 	static func generateReport(from interactions: [Interaction]) -> PatternReport? {
 		let flaggedInteractions = interactions.filter {

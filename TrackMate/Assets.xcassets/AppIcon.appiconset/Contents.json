@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "App-Icon-v1-iOS-Default-1024x1024@1x.png",
+      "filename" : "Untitled_Artwork.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "App-Icon-v1-iOS-Dark-1024x1024@1x.png",
+      "filename" : "Untitled_Artwork 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,6 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "App-Icon-v1-iOS-ClearDark-1024x1024@1x.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

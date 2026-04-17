@@ -59,15 +59,15 @@ struct ContentView: View {
                     )
                 }
                 .tag(2)
-            
-            PatternTabView()
-                .tabItem {
-                    Label(
-                        "Patterns",
-                        systemImage: "chart.bar.fill"
-                    )
-                }
-                .tag(3)
+		   
+		   AnalysisView()
+			   .tabItem {
+				   Label(
+					"Analysis",
+					systemImage: "brain.head.profile"
+				   )
+			   }
+			   .tag(3)
             
             SettingsTabView()
                 .tabItem {

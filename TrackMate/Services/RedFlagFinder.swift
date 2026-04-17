@@ -22,11 +22,13 @@ class RedFlagFinder {
 	}
 	
 	func predict(text: String) -> (label: String, confidence: Double) {
+		if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+			return ("Neutral", 0.0)
+		}
+		
 		do {
 			let output = try model.prediction(text: text)
-			
 			let label = output.label
-			
 			let defaultConfidence = 1.0
 			
 			return (label, defaultConfidence)

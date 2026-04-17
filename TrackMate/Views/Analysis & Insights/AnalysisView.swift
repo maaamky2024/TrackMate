@@ -8,6 +8,12 @@
 import SwiftUI
 import CoreData
 
+private let dateFormatter: DateFormatter = {
+	let formatter = DateFormatter()
+	formatter.dateFormat = "EEE\ndd"
+	return formatter
+}()
+
 struct AnalysisView: View {
 	@Environment(\.managedObjectContext) private var viewContext
 	@EnvironmentObject var themeManager: ThemeManager
@@ -16,6 +22,9 @@ struct AnalysisView: View {
 		entity: Interaction.entity(),
 		sortDescriptors: [NSSortDescriptor(keyPath: \Interaction.timestamp, ascending: false)]
 	) private var allInteractions: FetchedResults<Interaction>
+	
+	@State private var selectedDay: Date?
+	@State private var personSummaries: [String: String] = [:]
 	
 	var body: some View {
 		NavigationStack {
