@@ -87,7 +87,7 @@ struct AnalysisView: View {
 						
 						ScrollView(.horizontal, showsIndicators: false) {
 							HStack {
-								ForEach(getDaysForCurrentWeek(), id: \.self { day in
+								ForEach(getDaysForCurrentWeek(), id: \.self) { day in
 									Button {
 										selectedDay = day
 									} label: {
@@ -99,12 +99,12 @@ struct AnalysisView: View {
 											ZStack {
 												Circle()
 													.fill(colorForDay(day: day).opacity(0.85))
-													.frame(wideth: 50, height: 50)
+													.frame(width: 50, height: 50)
 												Circle()
 													.stroke(
-														selectedDay == day ? themeManager.color("AccentColor"))
-												lineWidth: 3
-												)
+														selectedDay == day ? themeManager.color("AccentColor") : Color.clear,
+														lineWidth: 3
+													)
 											}
 										}
 									}
@@ -124,7 +124,7 @@ struct AnalysisView: View {
 						}
 						.padding(.vertical, 10)
 					}
-				
+					
 					Divider().padding(.horizontal)
 					
 					// MARK: - Statistics
@@ -168,37 +168,67 @@ struct AnalysisView: View {
 		let today = Date()
 		var week: [Date] = []
 		let weekday = calendar.component(.weekday, from: today)
-		guard let startOfWeek = calendar.date(byAdding: .day, value: i, to: startOfWeek) {
-			week.append(day)
+		guard let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 2), to: today) else  { return [] }
+		for i in 0..<7 {
+			if let day = calendar.date(byAdding: .day, value: i, to: startOfWeek) {
+				week.append(day)
+			}
+		}
+		return week
+	}
+	
+	func colorForDay(day: Date) -> Color {
+		let dailyInteractions = allInteractions.filter {
+			Calendar.current.isDate($0.timestamp ?? Date(), inSameDayAs: day)
+		}
+		let negativeEmotions = ["Sad", "Anxious", "Confused", "Belittled", "Angry", "Guilty", "Invalidated", "Unsafe"]
+		let positiveEmotions = ["Happy", "Calm", "Loved", "Empowered", "Safe"]
+		var score = 0
+		for interactions in dailyInteractions {
+			if let tags = interactions.emotionTags as? [String] {
+				for tag in tags {
+					if negativeEmotions.contains(tag) {
+						score -= 1
+					} else if positiveEmotions.contains(tag) {
+						score += 1
+					}
+				}
+			}
+		}
+		if score < 0 {
+			return Color("MoodNegative")
+		} else if score > 0 {
+			return Color("MoodPositive")
+		} else {
+			return .gray
 		}
 	}
-	return week
-}
-
-struct StatBox: View {
-	let title: String
-	let value: String
-	let icon: String
-	@ObservedObject var themeManager: ThemeManager
 	
-	var body: some View {
-		VStack(spacing: 8) {
-			Image(systemName: icon)
-				.font(.title2)
-				.foregroundColor(themeManager.color("AccentColor"))
-			
-			Text(value)
-				.font(.title)
-				.bold()
-				.foregroundColor(themeManager.color("PrimaryText"))
-			
-			Text(title)
-				.font(.caption)
-				.foregroundColor(themeManager.color("SecondaryText"))
+	struct StatBox: View {
+		let title: String
+		let value: String
+		let icon: String
+		@ObservedObject var themeManager: ThemeManager
+		
+		var body: some View {
+			VStack(spacing: 8) {
+				Image(systemName: icon)
+					.font(.title2)
+					.foregroundColor(themeManager.color("AccentColor"))
+				
+				Text(value)
+					.font(.title)
+					.bold()
+					.foregroundColor(themeManager.color("PrimaryText"))
+				
+				Text(title)
+					.font(.caption)
+					.foregroundColor(themeManager.color("SecondaryText"))
+			}
+			.frame(maxWidth: .infinity)
+			.padding()
+			.background(themeManager.color("CardFill"))
+			.cornerRadius(12)
 		}
-		.frame(maxWidth: .infinity)
-		.padding()
-		.background(themeManager.color("CardFill"))
-		.cornerRadius(12)
 	}
 }
