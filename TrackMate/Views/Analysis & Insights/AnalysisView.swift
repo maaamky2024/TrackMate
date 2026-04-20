@@ -33,7 +33,7 @@ struct AnalysisView: View {
 					
 					// MARK: - AI Insights
 					VStack(alignment: .leading, spacing: 12) {
-						Text("AI Insights")
+						Text("Pattern Detection")
 							.font(.title2)
 							.bold()
 							.foregroundColor(themeManager.color("PrimaryText"))
@@ -63,8 +63,69 @@ struct AnalysisView: View {
 					}
 					.padding(.top)
 					
-					Divider()
+					Divider().padding(.horizontal)
+					
+					// MARK: - Week at a Glance
+					VStack(alignment: .leading, spacing: 10 ) {
+						Text("Week at a Glance")
+							.font(.title2)
+							.bold()
+							.foregroundColor(themeManager.color("PrimaryText"))
+							.padding(.horizontal)
+						
+						HStack(spacing: 12) {
+							Label("Better", systemImage: "circle.fill")
+								.foregroundColor(Color("MoodPositive"))
+							Label("Neutral", systemImage: "circle.fill")
+								.foregroundColor(.gray)
+							Label("Tough", systemImage: "circle.fill")
+								.foregroundColor(Color("MoodNegative"))
+						}
+						.font(.caption)
+						.foregroundColor(themeManager.color("SecondaryText"))
 						.padding(.horizontal)
+						
+						ScrollView(.horizontal, showsIndicators: false) {
+							HStack {
+								ForEach(getDaysForCurrentWeek(), id: \.self { day in
+									Button {
+										selectedDay = day
+									} label: {
+										VStack {
+											Text(day, formatter: dateFormatter)
+												.foregroundColor(themeManager.color("SecondaryText"))
+												.multilineTextAlignment(.center)
+											
+											ZStack {
+												Circle()
+													.fill(colorForDay(day: day).opacity(0.85))
+													.frame(wideth: 50, height: 50)
+												Circle()
+													.stroke(
+														selectedDay == day ? themeManager.color("AccentColor"))
+												lineWidth: 3
+												)
+											}
+										}
+									}
+									.buttonStyle(.plain)
+									.simultaneousGesture(
+										LongPressGesture().onEnded { _ in
+											NotificationCenter.default.post(
+												name: .prefillInteractionDate,
+												object: day
+												
+											)
+										}
+									)
+								}
+							}
+							.padding(.horizontal)
+						}
+						.padding(.vertical, 10)
+					}
+				
+					Divider().padding(.horizontal)
 					
 					// MARK: - Statistics
 					VStack(alignment: .leading, spacing: 16) {
@@ -101,6 +162,17 @@ struct AnalysisView: View {
 			.navigationTitle("Analysis")
 		}
 	}
+	
+	func getDaysForCurrentWeek() -> [Date] {
+		let calendar = Calendar.current
+		let today = Date()
+		var week: [Date] = []
+		let weekday = calendar.component(.weekday, from: today)
+		guard let startOfWeek = calendar.date(byAdding: .day, value: i, to: startOfWeek) {
+			week.append(day)
+		}
+	}
+	return week
 }
 
 struct StatBox: View {
