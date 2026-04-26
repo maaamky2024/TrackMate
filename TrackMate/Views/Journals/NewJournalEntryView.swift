@@ -29,8 +29,11 @@ struct NewJournalEntryView: View {
     @State private var showingErrorAlert = false
     @State private var errorMessage = ""
     
-    init(existingDraft: JournalEntry? = nil) {
-        _viewModel = StateObject(wrappedValue: JournalEntryViewModel(existingDraft: existingDraft))
+	let preLinkedInteraction: Interaction?
+	
+	init(existingDraft: JournalEntry? = nil, preLinkedInteraction: Interaction? = nil) {
+		self.preLinkedInteraction = preLinkedInteraction
+		_viewModel = StateObject(wrappedValue: JournalEntryViewModel(existingDraft: existingDraft))
     }
     
     var body: some View {
@@ -48,15 +51,21 @@ struct NewJournalEntryView: View {
         .trackMateNav(title: "New Journal Entry", themeManager: themeManager)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    do {
-                        savedJournalEntry = try viewModel.saveEntry(context: viewContext)
-                        presentationMode.wrappedValue.dismiss()
-                    } catch {
-                        errorMessage = "Could not save entry."
-                        showingErrorAlert = true
-                    }
-                }
+			  Button("Save") {
+				  do {
+					  let journal = try viewModel.saveEntry(context: viewContext)
+					  savedJournalEntry = journal
+					  if let interaction = preLinkedInteraction {
+						  journal.linkedInteraction = interaction
+						  try viewContext.save()
+					  }
+					  
+					  presentationMode.wrappedValue.dismiss()
+				  } catch {
+					  errorMessage = "Could no save entry."
+					  showingErrorAlert = true
+				  }
+			  }
                 .tint(themeManager.color("AccentColor"))
                 .disabled(!viewModel.isFormValid)
             }
