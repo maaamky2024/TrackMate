@@ -32,6 +32,12 @@ struct NewInteractionEntryView: View {
 	@State private var showSaveToast = false
 	@State private var saveToastText = "Entry saved."
 	
+	@State private var showJournalPrompt = false
+	@State private var showingWriteNewJournal = false
+	@State private var showingLinkExistingJournal = false
+	@State private var newlySavedInteraction: Interaction?
+	@State private var pendingInsight: PostSaveInsight?
+	
 	// MARK: - Options
 	private let interactionTypes = ["In-person", "Phone call", "Text/DM", "Social media", "Other"]
 	private let emotionOptions = ["Happy", "Sad", "Calm", "Anxious", "Confused", "Belittled", "Loved", "Angry", "Guilty", "Invalidated", "Empowered", "Safe", "Unsafe"]
@@ -70,13 +76,18 @@ struct NewInteractionEntryView: View {
 				.listRowBackground(themeManager.color("CardFill"))
 				
 				
-				// MARK: - Notes
-				Section(header: sectionHeader("Notes")) {
+				// MARK: - Summary
+				Section(
+					header: sectionHeader("Brief Summary (What happened?)"),
+					footer: Text("You can add a deep-dive journal reflection after saving.")
+						.font(.caption)
+						.foregroundColor(themeManager.color("SecondaryText"))
+				) {
 					TextEditor(text: $notes)
 						.frame(minHeight: 110)
 						.foregroundColor(themeManager.color("PrimaryText"))
 						.placeholder(when: notes.isEmpty) {
-							Text("Please describe their side of the interaction. Make sure to make a JOURNAL entry on how this interaction affected you and how you feel about it--puting it in the interaction log will make it more difficult to spot red flags!")
+							Text("Log the factual, objective details here...")
 								.foregroundColor(themeManager.color("SecondaryText"))
 								.padding(8)
 						}
@@ -159,6 +170,36 @@ struct NewInteractionEntryView: View {
 				}
 				.environmentObject(themeManager)
 			}
+			
+			.confirmationDialog("Would you like to reflect on this interaction?", isPresented: $showJournalPrompt, titleVisibility: .visible) {
+				Button("Write New Journal") {
+					showingWriteNewJournal = true
+				}
+				Button("Link Existing Journal") {
+					showingLinkExistingJournal = true
+				}
+				Button("Not Right Now", role: .cancel) {
+					finishSaveFlow()
+				}
+			} message: {
+				Text("You can write a new reflection or link an existing one to this interaction.")
+			}
+			.sheet(isPresented: $showingWriteNewJournal, onDismiss: { finishSaveFlow() }) {
+				if let interaction = newlySavedInteraction {
+					NewJournalEntryView(preLinkedInteraction: interaction)
+						.environment(\.managedObjectContext, viewContext)
+						.environmentObject(themeManager)
+				}
+			}
+			.sheet(isPresented: $showingLinkExistingJournal, onDismiss: { finishSaveFlow() }) {
+				if let interaction = newlySavedInteraction {
+					JournalSelectionSheet(interaction: interaction) {
+						// completion handled by onDismiss
+					}
+					.environment(\.managedObjectContext, viewContext)
+					.environmentObject(themeManager)
+				}
+			}
 		}
 	}
 	
@@ -239,21 +280,18 @@ struct NewInteractionEntryView: View {
 		
 		do {
 			try viewContext.save()
+			newlySavedInteraction = newEntry
 			
 			// Generate insight
 			if let insight = InteractionInsightService.generateInsight(
 				context: viewContext,
 				personName: personName
 			) {
-				postSaveInsight = insight
-			} else {
-				saveToastText = "Interaction recorded."
-				showSaveToast = true
-				
-				DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-					dismiss()
-				}
+				pendingInsight = insight
 			}
+			
+			showJournalPrompt = true
+			
 			let contactID = resolvedContact.objectID
 			Task {
 				let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
@@ -269,5 +307,16 @@ struct NewInteractionEntryView: View {
 			print("Error saving entry: \(error.localizedDescription)")
 		}
 	}
+	
+	private func finishSaveFlow() {
+		if let insight = pendingInsight {
+			postSaveInsight = insight
+		} else {
+			saveToastText = "Interaction recorded."
+			showSaveToast = true
+			DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+				dismiss()
+			}
+		}
+	}
 }
-
