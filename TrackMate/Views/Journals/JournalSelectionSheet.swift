@@ -28,7 +28,7 @@ struct JournalSelectionSheet: View {
 		if journalSearchText.isEmpty { return Array(allJournalEntries) }
 		return allJournalEntries.filter { entry in
 			let content = entry.content ?? ""
-			let tags = (entry.emotionTags as? [String]) ?? []
+			_ = (entry.emotionTags as? [String]) ?? []
 			return content.localizedCaseInsensitiveContains(journalSearchText) }
 	}
 	
