@@ -23,37 +23,66 @@ struct RedFlagsLibraryView: View {
     private func navigate(to redFlag: RedFlags) {
         selectedRedFlag = redFlag
     }
+	
+	private var zeroStateMessage: String {
+		let count = redFlags.count
+		if count == 0 {
+			return "No red flags to monitor yet."
+		} else if count == 1 {
+			return "Monitoring 1 category."
+		} else {
+			return "Monitoring \(count) categories."
+		}
+	}
     
     var body: some View {
         NavigationStack {
             List {
-                ForEach(redFlags) { redFlag in
-                    NavigationLink {
-                        RedFlagDetailView(redFlag: redFlag)
-                            .environmentObject(themeManager)
-                    } label: {
-                        HStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(redFlag.category ?? "Unknown")
-                                    .font(.headline)
-                                    .foregroundColor(themeManager.color("SecondaryText"))
-                                
-                                if redFlag.wasMatched {
-                                    Text("Seen in your logs")
-                                        .font(.caption)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
-                                        .background(
-                                            themeManager.color("AccentColor").opacity(0.15)
-                                        )
-                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                                }
-                            }
-                        }
-                        .padding(.vertical, 10)
-                    }
-                    .listRowBackground(themeManager.color("CardFill"))
-                }
+			  Section(
+				header:
+					Text(zeroStateMessage)
+					.foregroundColor(themeManager.color("SecondaryText"))
+					.font(.subheadline)
+					.padding(.vertical, 8)
+			  ) {
+				  EmptyView()
+			  }
+			  .listSectionSeparator(.hidden)
+			  
+			  ForEach(redFlags) { redFlag in
+				  NavigationLink {
+					  RedFlagDetailView(redFlag: redFlag)
+						  .environmentObject(themeManager)
+				  } label: {
+					  VStack(alignment: .leading) {
+						  HStack(spacing: 12) {
+							  VStack(alignment: .leading, spacing: 6) {
+								  Text(redFlag.category ?? "Unknown")
+									  .font(.headline)
+									  .foregroundColor(themeManager.color("SecondaryText"))
+								  
+								  if redFlag.wasMatched {
+									  Text("Seen in your logs")
+										  .font(.caption)
+										  .padding(.horizontal, 8)
+										  .padding(.vertical, 4)
+										  .background(
+											themeManager.color("AccentColor").opacity(0.15)
+										  )
+										  .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+								  }
+							  }
+							  Spacer()
+						  }
+					  }
+					  .padding()
+					  .background(themeManager.color("CardFill"))
+					  .cornerRadius(16)
+				  }
+				  .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+				  .listRowSeparator(.hidden)
+				  .listRowBackground(Color.clear)
+			  }
                 .onDelete(perform: deleteRedFlags)
             }
             .listStyle(.plain)
