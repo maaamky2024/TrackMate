@@ -38,6 +38,8 @@ struct NewInteractionEntryView: View {
 	@State private var newlySavedInteraction: Interaction?
 	@State private var pendingInsight: PostSaveInsight?
 	
+	@State private var hasSavedInteraction = false
+	
 	// MARK: - Options
 	private let interactionTypes = ["In-person", "Phone call", "Text/DM", "Social media", "Other"]
 	private let emotionOptions = ["Happy", "Sad", "Calm", "Anxious", "Confused", "Belittled", "Loved", "Angry", "Guilty", "Invalidated", "Empowered", "Safe", "Unsafe"]
@@ -152,7 +154,8 @@ struct NewInteractionEntryView: View {
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button("Cancel") { dismiss() }
-						.foregroundColor(themeManager.color("AccentColor"))
+						.foregroundColor(hasSavedInteraction ? .gray : themeManager.color("AccentColor"))
+						.disabled(hasSavedInteraction)
 				}
 				
 				ToolbarItem(placement: .confirmationAction) {
@@ -161,16 +164,16 @@ struct NewInteractionEntryView: View {
 				}
 			}
 			.toast(isPresented: $showSaveToast, text: saveToastText)
-			.sheet(item: $postSaveInsight) { insight in
+			.sheet(item: $postSaveInsight, onDismiss: {
+				DispatchQueue.main.async {
+					dismiss()
+				}
+			}) { insight in
 				QuickReflectionSheet(insight: insight) {
 					postSaveInsight = nil
-					DispatchQueue.main.async {
-						dismiss()
-					}
 				}
 				.environmentObject(themeManager)
 			}
-			
 			.confirmationDialog("Would you like to reflect on this interaction?", isPresented: $showJournalPrompt, titleVisibility: .visible) {
 				Button("Write New Journal") {
 					showingWriteNewJournal = true
@@ -186,18 +189,22 @@ struct NewInteractionEntryView: View {
 			}
 			.sheet(isPresented: $showingWriteNewJournal, onDismiss: { finishSaveFlow() }) {
 				if let interaction = newlySavedInteraction {
-					NewJournalEntryView(preLinkedInteraction: interaction)
-						.environment(\.managedObjectContext, viewContext)
-						.environmentObject(themeManager)
+					NavigationStack {
+						NewJournalEntryView(preLinkedInteraction: interaction)
+							.environment(\.managedObjectContext, viewContext)
+							.environmentObject(themeManager)
+					}
 				}
 			}
 			.sheet(isPresented: $showingLinkExistingJournal, onDismiss: { finishSaveFlow() }) {
 				if let interaction = newlySavedInteraction {
-					JournalSelectionSheet(interaction: interaction) {
-						// completion handled by onDismiss
+					NavigationStack {
+						JournalSelectionSheet(interaction: interaction) {
+							// completion handled by onDismiss
+						}
+						.environment(\.managedObjectContext, viewContext)
+						.environmentObject(themeManager)
 					}
-					.environment(\.managedObjectContext, viewContext)
-					.environmentObject(themeManager)
 				}
 			}
 		}
@@ -232,6 +239,9 @@ struct NewInteractionEntryView: View {
 	// MARK: - Save
 	
 	private func saveEntry() {
+		guard !hasSavedInteraction else { return }
+		hasSavedInteraction = true
+		
 		let newEntry = Interaction(context: viewContext)
 		newEntry.id = UUID()
 		newEntry.timestamp = Date()
