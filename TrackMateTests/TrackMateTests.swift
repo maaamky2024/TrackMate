@@ -68,4 +68,12 @@ struct TrackMateTests {
 		#expect(report?.incidentCount == 3, "Should correctly count 3 incidents.")
 	}
 
+    @Test func testPreviewHasTenItems() async throws {
+        let preview = PersistenceController.preview
+        let context = preview.container.viewContext
+        let fetchRequest: NSFetchRequest<Item> = Item.fetchRequest()
+        let items = try context.fetch(fetchRequest)
+        #expect(items.count == 10)
+    }
+
 }
