@@ -1,3 +1,4 @@
+
 //
 //  AutomatedInsightCard.swift
 //  TrackMate
@@ -6,101 +7,141 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct AutomatedInsightCard: View {
-	let report: PatternReport
-	@EnvironmentObject var themeManager: ThemeManager
-	
-	var body: some View {
-		VStack(alignment: .leading, spacing: 16) {
-			
-			HStack {
+    let report: PatternReport
+    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    @State private var showingFalseFlagAlert = false
+    @State private var isDismissed = false
+    
+    var body: some View {
+	   if !isDismissed {
+		  VStack(alignment: .leading, spacing: 16) {
+			 
+			 HStack {
 				Image(systemName: "exclamationmark.shield.fill")
-					.foregroundColor(themeManager.color("AccentColor"))
+				    .foregroundColor(themeManager.color("AccentColor"))
 				Text("Pattern Detected")
-					.font(.headline)
-					.foregroundColor(themeManager.color("PrimaryText"))
-			}
-			
-			Divider()
-			
-			VStack(alignment: .leading, spacing: 12) {
-				Text("CiraBot identified a recurring pattern in your entries.")
-					.font(.subheadline)
-					.foregroundColor(themeManager.color("SecondaryText"))
+				    .font(.headline)
+				    .foregroundColor(themeManager.color("PrimaryText"))
+				Spacer()
+			 }
+			 
+			 Divider()
+			 
+			 VStack(alignment: .leading, spacing: 12) {
+				Text("A recurring pattern in your entries has been identified.")
+				    .font(.subheadline)
+				    .foregroundColor(themeManager.color("SecondaryText"))
 				
 				VStack(alignment: .leading, spacing: 8) {
-					HStack(spacing: 0) {
-						Text("Offender: ").bold()
-						Text(report.offenderName)
-					}
-					
-					HStack(spacing: 0) {
-						Text("Pattern: ").bold()
-						Text("Used ")
-						Text(report.primaryTactic)
-							.bold()
-							.foregroundColor(.red)
-						Text(" \(report.incidentCount) times.")
-					}
-					
-					HStack(spacing: 0) {
-						Text("Pattern: ").bold()
-						Text("Happens most frequently during ")
-						Text(report.primaryMedium).bold()
-						Text(".")
-					}
+				    Text("**Offender:** \(report.offenderName)")
+				    
+				    (Text("**Pattern:** Used ") +
+					Text("\(report.primaryTactic)")
+					   .bold()
+					   .foregroundColor(.red) +
+					Text(" \(report.incidentCount) times."))
+				    
+				    Text("**Context:** \(report.contextualExample ?? "Based on recent emotional shifts and logged interactions.")")
+					   .italic()
+				    
+				    Text("**Occurs:** Most frequently during \(report.primaryMedium).")
 				}
-			}
-			.font(.body)
-			.foregroundColor(themeManager.color("PrimaryText"))
-			
-			if let resourceData = report.suggestedResource {
+			 }
+			 .font(.body)
+			 .foregroundColor(themeManager.color("PrimaryText"))
+			 
+			 if let resourceData = report.suggestedResource {
 				VStack(alignment: .leading, spacing: 12) {
-					
-					if let firstTip = resourceData.tips.first {
-						HStack(alignment: .top) {
-							Image(systemName: "lightbulb.fill")
-								.foregroundColor(themeManager.color("AccentColor"))
-							Text(firstTip)
-								.font(.subheadline)
-								.foregroundColor(themeManager.color("PrimaryText"))
-								.fixedSize(horizontal: false, vertical: true)
-						}
-						.padding(.vertical, 4)
-					}
-					
-					Text("Suggested Action")
-						.font(.caption)
-						.foregroundColor(themeManager.color("SecondaryText"))
-						.textCase(.uppercase)
-					
-					if let urlString = resourceData.resources.first, let url = URL(string: urlString) {
-						Link(destination: url) {
-							HStack {
-								Image(systemName: "safari.fill")
-								Text("Read guide on \(resourceData.category)")
-									.fontWeight(.semibold)
-								Spacer()
-								Image(systemName: "arrow.up.right.square")
-							}
-							.padding()
-							.background(themeManager.color("AccentColor").opacity(0.1))
-							.foregroundColor(themeManager.color("AccentColor"))
-								.cornerRadius(10)
-						}
-					}
+				    
+				    Text("Suggested Action")
+					   .font(.caption)
+					   .foregroundColor(themeManager.color("SecondaryText"))
+					   .textCase(.uppercase)
+				    
+				    if let firstTip = resourceData.tips.first {
+					   HStack(alignment: .top) {
+						  Image(systemName: "lightbulb.fill")
+							 .foregroundColor(themeManager.color("AccentColor"))
+						  Text(firstTip)
+							 .font(.subheadline)
+							 .foregroundColor(themeManager.color("PrimaryText"))
+							 .fixedSize(horizontal: false, vertical: true)
+					   }
+					   .padding(.vertical, 4)
+				    }
+				    
+				    if let urlString = resourceData.resources.first, let url = URL(string: urlString) {
+					   Link(destination: url) {
+						  HStack {
+							 Image(systemName: "safari.fill")
+							 Text("Read guide on \(resourceData.category)")
+								.fontWeight(.semibold)
+							 Spacer()
+							 Image(systemName: "arrow.up.right.square")
+						  }
+						  .padding()
+						  .background(themeManager.color("AccentColor").opacity(0.1))
+						  .foregroundColor(themeManager.color("AccentColor"))
+						  .cornerRadius(10)
+					   }
+				    }
 				}
 				.padding(.top, 4)
-			}
-		}
-		.padding()
-		.background(themeManager.color("CardFill"))
-		.cornerRadius(16)
-		.shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-		.overlay(
-			RoundedRectangle(cornerRadius: 16)
+			 }
+			 
+			 Divider()
+				.padding(.top, 4)
+			 
+			 Button(action: {
+				showingFalseFlagAlert = true
+			 }) {
+				HStack {
+				    Image(systemName: "flag.slash")
+				    Text("Report as Misinterpretation")
+				}
+				.font(.caption)
+				.foregroundColor(themeManager.color("SecondaryText"))
+				.frame(maxWidth: .infinity, alignment: .center)
+				.padding(.top, 4)
+			 }
+		  }
+		  .padding()
+		  .background(themeManager.color("CardFill"))
+		  .cornerRadius(16)
+		  .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+		  .overlay(
+			 RoundedRectangle(cornerRadius: 16)
 				.stroke(themeManager.color("AccentColor").opacity(0.3), lineWidth: 1)
-			)
-	}
+		  )
+		  .alert("Flag as Inaccurate?", isPresented: $showingFalseFlagAlert) {
+			 Button("Yes, dismiss pattern", role: .destructive) {
+				
+				if let textToDismiss = report.contextualExample {
+				    let newDismissal = DismissedFlag(context: viewContext)
+				    newDismissal.originalText = textToDismiss
+				    newDismissal.dateDismissed = Date()
+				    
+				    do {
+					   try viewContext.save()
+					   print("Successfully saved misinterpretation flag.")
+				    } catch {
+					   print("Failed to save dismissed flag: \(error.localizedDescription)")
+				    }
+				}
+				
+				withAnimation {
+				    isDismissed = true
+				}
+			 }
+			 Button("Cancel", role: .cancel) { }
+		  } message: {
+			 Text("This helps TrackMate learn your boundaries and avoid false alarms in the future.")
+		  }
+	   }
+    }
 }
