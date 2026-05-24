@@ -14,7 +14,7 @@ struct NewInteractionEntryView: View {
     @StateObject private var viewModel = InteractionViewModel()
     @Environment(\.managedObjectContext) private var viewContext: NSManagedObjectContext
     
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var DismissedFlag
     
     @EnvironmentObject var themeManager: ThemeManager
     
