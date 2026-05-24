@@ -42,15 +42,6 @@ struct ContentView: View {
                 }
                 .tag(0)
             
-            JournalTabView()
-                .tabItem {
-                    Label(
-                        "Journal",
-                        systemImage: "book.closed.fill"
-                    )
-                }
-                .tag(1)
-            
             RedFlagsTabView()
                 .tabItem {
                     Label(
@@ -58,7 +49,7 @@ struct ContentView: View {
                         systemImage: "exclamationmark.triangle.fill"
                     )
                 }
-                .tag(2)
+                .tag(1)
 		   
 		   AnalysisView()
 			   .tabItem {
@@ -67,7 +58,7 @@ struct ContentView: View {
 					systemImage: "brain.head.profile"
 				   )
 			   }
-			   .tag(3)
+			   .tag(2)
             
             SettingsTabView()
                 .tabItem {
@@ -76,7 +67,7 @@ struct ContentView: View {
                         systemImage: "gearshape"
                     )
                 }
-                .tag(4)
+                .tag(3)
         }
         .accentColor(themeManager.color("AccentColor"))
         .background(themeManager.color("PrimaryBackground"))

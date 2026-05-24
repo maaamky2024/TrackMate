@@ -10,19 +10,26 @@ import CoreData
 import SwiftUI
 
 class InteractionViewModel: ObservableObject {
-	@Published var journalText: String = ""
+	@Published var searchFilterText: String = ""
 	
 	private let finder = RedFlagFinder()
 	
-	func saveInteraction(context: NSManagedObjectContext) {
-		let textToSave = journalText
+	func saveInteraction(context: NSManagedObjectContext, personName: String, interactionType: String, notes: String, emotions: Set<String>, respected: String, bourndaries: String, safe: String) {
+		let textToSave = notes.trimmingCharacters(in: .whitespacesAndNewlines)
 		let timeStamp = Date()
 		
-		let analysisResult = finder.predict(text: textToSave)
-		
 		let newInteraction = Interaction(context: context)
-		newInteraction.notes = textToSave
+		newInteraction.id = UUID()
 		newInteraction.timestamp = timeStamp
+		newInteraction.personName = personName
+		newInteraction.interactionType = interactionType
+		newInteraction.notes = textToSave
+		newInteraction.emotionTags = Array(emotions).sorted() as NSArray
+		newInteraction.didFeelRespected = respected
+		newInteraction.didFeelBoundariesAcknowledged = bourndaries
+		newInteraction.didFeelEmotionallySafe = safe
+		
+		let analysisResult = finder.predict(text: textToSave)
 		
 		if analysisResult.confidence > 0.70 {
 			newInteraction.detectedRedFlag = analysisResult.label
@@ -35,8 +42,6 @@ class InteractionViewModel: ObservableObject {
 			
 			do {
 				try context.save()
-				
-				journalText = ""
 			} catch {
 				print("Core Data Save Failed: \(error.localizedDescription)")
 			}

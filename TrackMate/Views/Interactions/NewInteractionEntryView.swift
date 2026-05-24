@@ -14,7 +14,7 @@ struct NewInteractionEntryView: View {
     @StateObject private var viewModel = InteractionViewModel()
     @Environment(\.managedObjectContext) private var viewContext: NSManagedObjectContext
     
-    @Environment(\.dismiss) private var DismissedFlag
+    @Environment(\.dismiss) private var dismiss
     
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -32,11 +32,6 @@ struct NewInteractionEntryView: View {
     @State private var showInsightSheet = false
     @State private var showSaveToast = false
     @State private var saveToastText = "Entry saved."
-    
-    @State private var showJournalPrompt = false
-    @State private var showingWriteNewJournal = false
-    @State private var showingLinkExistingJournal = false
-    @State private var newlySavedInteraction: Interaction?
     @State private var pendingInsight: PostSaveInsight?
     
     @State private var hasSavedInteraction = false
@@ -168,46 +163,13 @@ struct NewInteractionEntryView: View {
 		  .toast(isPresented: $showSaveToast, text: saveToastText)
 		  .sheet(item: $postSaveInsight, onDismiss: {
 			 DispatchQueue.main.async {
-				dismiss()
+				 dismiss()
 			 }
 		  }) { insight in
 			 QuickReflectionSheet(insight: insight) {
 				postSaveInsight = nil
 			 }
 			 .environmentObject(themeManager)
-		  }
-		  .confirmationDialog("Would you like to reflect on this interaction?", isPresented: $showJournalPrompt, titleVisibility: .visible) {
-			 Button("Write New Journal") {
-				showingWriteNewJournal = true
-			 }
-			 Button("Link Existing Journal") {
-				showingLinkExistingJournal = true
-			 }
-			 Button("Not Right Now", role: .cancel) {
-				finishSaveFlow()
-			 }
-		  } message: {
-			 Text("You can write a new reflection or link an existing one to this interaction.")
-		  }
-		  .sheet(isPresented: $showingWriteNewJournal, onDismiss: { finishSaveFlow() }) {
-			 if let interaction = newlySavedInteraction {
-				NavigationStack {
-				    NewJournalEntryView(preLinkedInteraction: interaction)
-					   .environment(\.managedObjectContext, viewContext)
-					   .environmentObject(themeManager)
-				}
-			 }
-		  }
-		  .sheet(isPresented: $showingLinkExistingJournal, onDismiss: { finishSaveFlow() }) {
-			 if let interaction = newlySavedInteraction {
-				NavigationStack {
-				    JournalSelectionSheet(interaction: interaction) {
-					   // completion handled by onDismiss
-				    }
-				    .environment(\.managedObjectContext, viewContext)
-				    .environmentObject(themeManager)
-				}
-			 }
 		  }
 	   }
     }
@@ -259,38 +221,17 @@ struct NewInteractionEntryView: View {
 	   newEntry.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
 	   newEntry.didFeelEmotionallySafe = didFeelEmotionallySafe
 	   
-	   let fetchRequest: NSFetchRequest<DismissedFlag> = DismissedFlag.fetchRequest()
-	   
-	   fetchRequest.predicate = NSPredicate(format: "originalText == %@", notes)
-	   fetchRequest.fetchLimit = 1
-	   
-	   do {
-		  let matchingDismissals = try viewContext.fetch(fetchRequest)
-		  
-		  if !matchingDismissals.isEmpty {
-			 newEntry.detectedRedFlag = "Inconclusive"
-			 newEntry.flagConfidence = 1.0
-			 print("AI Override: Exact match found in DismissedFlag database.")
-		  } else {
-			 let aiResult = aiFinder.predict(text: notes)
-			 
-			 if aiResult.label != "Neutral" && aiResult.label != "Unknown" {
-				newEntry.detectedRedFlag = aiResult.label
-				newEntry.flagConfidence = aiResult.confidence
-				print("AI Flagged: \(aiResult.label) (\(Int(aiResult.confidence * 100))%)")
-			 } else {
-				newEntry.detectedRedFlag = "Inconclusive"
-				newEntry.flagConfidence = aiResult.confidence
-				print("AI Result: Inconclusive (\(Int(aiResult.confidence * 100))%)")
-			 }
-		  }
-	   } catch {
-		  print("Error fetching dismissed flags: \(error.localizedDescription)")
-		  // Fallback to standard ML evaluation if the database fetch fails
-		  newEntry.detectedRedFlag = "Inconclusive"
-		  newEntry.flagConfidence = 0.0
-	   }
-	   
+	    let aiResult = aiFinder.predict(text: notes)
+	    
+	    if aiResult.label != "Neutral" && aiResult.label != "Unknown" {
+		    newEntry.detectedRedFlag = aiResult.label
+		    newEntry.flagConfidence = aiResult.confidence
+		    print("AI Flagged: \(aiResult.label)")
+	    } else {
+		    newEntry.detectedRedFlag = "Inconclusive"
+		    newEntry.flagConfidence = aiResult.confidence
+		    print("AI Result: Inconclusive")
+	    }
 	   // Logic for contact matching
 	   let contactRequest: NSFetchRequest<Contact> = Contact.fetchRequest()
 	   contactRequest.predicate = NSPredicate(format: "name == [c] %@", personName)
@@ -311,7 +252,6 @@ struct NewInteractionEntryView: View {
 	   
 	   do {
 		  try viewContext.save()
-		  newlySavedInteraction = newEntry
 		  
 		  // Generate insight
 		  if let insight = InteractionInsightService.generateInsight(
@@ -320,8 +260,8 @@ struct NewInteractionEntryView: View {
 		  ) {
 			 pendingInsight = insight
 		  }
-		  
-		  showJournalPrompt = true
+		   
+		   finishSaveFlow()
 		  
 		  let contactID = resolvedContact.objectID
 		  Task {
