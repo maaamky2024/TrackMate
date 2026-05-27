@@ -20,5 +20,6 @@ struct PatternReport {
 	let primaryTactic: String
 	let primaryMedium: String
 	let incidentCount: Int
+	let contextualExample: String?
 	let suggestedResource: RedFlagResourceData?
 }

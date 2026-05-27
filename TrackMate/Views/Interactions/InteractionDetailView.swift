@@ -99,18 +99,6 @@ struct InteractionDetailView: View {
             EditInteractionView(interaction: interaction)
                 .environment(\.managedObjectContext, viewContext)
         }
-	   .sheet(isPresented: $showingLinkJournalSheet) {
-		   JournalSelectionSheet(interaction: interaction) {
-			   showingLinkJournalSheet = false
-		   }
-		   .environment(\.managedObjectContext, viewContext)
-		   .environmentObject(themeManager)
-	   }
-	   .sheet(isPresented: $showingWriteNewJournal) {
-		   NewJournalEntryView(preLinkedInteraction: interaction)
-			   .environment(\.managedObjectContext, viewContext)
-			   .environmentObject(themeManager)
-	   }
         .trackMateNav(title: "Interaction Details", themeManager: themeManager)
     }
     
@@ -265,40 +253,6 @@ struct InteractionDetailView: View {
                 Text("\(sortedEntries.count) journal entr\(sortedEntries.count == 1 ? "y" : "ies") linked")
                     .font(.subheadline)
                     .foregroundColor(themeManager.color("SecondaryText"))
-                
-                VStack(spacing: 10) {
-                    ForEach(sortedEntries) { entry in
-                        NavigationLink {
-                            JournalDetailView(journalEntry: entry)
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text((entry.content ?? "Untitled Entry")
-                                        .trimmingCharacters(in: .whitespacesAndNewlines))
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundColor(themeManager.color("PrimaryText"))
-                                    .lineLimit(1)
-                                    
-                                    if let ts = entry.timestamp {
-                                        Text(ts, style: .date)
-                                            .font(.caption)
-                                            .foregroundColor(themeManager.color("SecondaryText"))
-                                    }
-                                }
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(themeManager.color("SecondaryText"))
-                            }
-                            .padding(12)
-                            .background(themeManager.color("CardFill"))
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.top, 6)
             }
         )
     }

@@ -40,11 +40,7 @@ struct AutomatedInsightCard: View {
 				VStack(alignment: .leading, spacing: 8) {
 				    Text("**Offender:** \(report.offenderName)")
 				    
-				    (Text("**Pattern:** Used ") +
-					Text("\(report.primaryTactic)")
-					   .bold()
-					   .foregroundColor(.red) +
-					Text(" \(report.incidentCount) times."))
+					Text("**Pattern:** Used \(Text(report.primaryTactic).bold().foregroundColor(.red)) \(report.incidentCount) times.")
 				    
 				    Text("**Context:** \(report.contextualExample ?? "Based on recent emotional shifts and logged interactions.")")
 					   .italic()
@@ -120,19 +116,6 @@ struct AutomatedInsightCard: View {
 		  )
 		  .alert("Flag as Inaccurate?", isPresented: $showingFalseFlagAlert) {
 			 Button("Yes, dismiss pattern", role: .destructive) {
-				
-				if let textToDismiss = report.contextualExample {
-				    let newDismissal = DismissedFlag(context: viewContext)
-				    newDismissal.originalText = textToDismiss
-				    newDismissal.dateDismissed = Date()
-				    
-				    do {
-					   try viewContext.save()
-					   print("Successfully saved misinterpretation flag.")
-				    } catch {
-					   print("Failed to save dismissed flag: \(error.localizedDescription)")
-				    }
-				}
 				
 				withAnimation {
 				    isDismissed = true

@@ -26,6 +26,14 @@ struct AnalysisView: View {
 	@State private var selectedDay: Date?
 	@State private var personSummaries: [String: String] = [:]
 	
+	// Gets all interactions not flagged as inconclusive
+	var individualFlags: [Interaction] {
+		allInteractions.filter {
+			let flag = $0.detectedRedFlag ?? ""
+			return !flag.isEmpty && flag != "Inconclusive" && flag != "Neutral"
+		}
+	}
+	
 	var body: some View {
 		NavigationStack {
 			ScrollView {
@@ -64,6 +72,55 @@ struct AnalysisView: View {
 					.padding(.top)
 					
 					Divider().padding(.horizontal)
+					
+					// MARK: - Recent Individual Flags
+					if !individualFlags.isEmpty {
+						VStack(alignment: .leading, spacing: 10) {
+							Text("Recent Flags")
+								.font(.title2)
+								.bold()
+								.foregroundColor(themeManager.color("PrimaryText"))
+								.padding(.horizontal)
+							
+							ScrollView(.horizontal, showsIndicators: false) {
+								HStack(spacing: 16) {
+									ForEach(individualFlags.prefix(10)) { interaction in
+										NavigationLink(destination: FlaggedHistoryView(personName: interaction.personName ?? "Unknown", flagCategory: interaction.detectedRedFlag ?? "Unknown").environmentObject(themeManager)) {
+											
+											VStack(alignment: .leading, spacing: 8) {
+												HStack {
+													Image(systemName: "flag.fill")
+														.foregroundColor(.red)
+													Text(interaction.detectedRedFlag ?? "Flag")
+														.font(.headline)
+														.foregroundColor(themeManager.color("PrimaryText"))
+												}
+												Text("With: \(interaction.personName ?? "Unknown")")
+													.font(.subheadline)
+													.foregroundColor(themeManager.color("SecondaryText"))
+												
+												Text(interaction.timestamp ?? Date(), style: .date)
+													.font(.caption)
+													.foregroundColor(themeManager.color("SecondaryText"))
+											}
+											.padding()
+											.frame(width: 200, alignment: .leading)
+											.background(themeManager.color("CardFill"))
+											.cornerRadius(12)
+											.overlay(
+												RoundedRectangle(cornerRadius: 12)
+													.stroke(Color.red.opacity(0.3), lineWidth: 1)
+											)
+										}
+										.buttonStyle(.plain)
+									}
+								}
+								.padding(.horizontal)
+							}
+						}
+						
+						Divider().padding(.horizontal)
+					}
 					
 					// MARK: - Week at a Glance
 					VStack(alignment: .leading, spacing: 10 ) {

@@ -41,6 +41,7 @@ class PatternInsightService {
 			primaryTactic: topTactic,
 			primaryMedium: topMedium,
 			incidentCount: tacticCount,
+			contextualExample: tacticInteractions.last?.notes,
 			suggestedResource: matchedResource
 		)
 	}
