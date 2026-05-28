@@ -12,24 +12,14 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var themeManager: ThemeManager
     
-    @AppStorage("requireAppLock") private var requireAppLock: Bool = false
-    
     @State private var selectedTab = 0
     
-    var body: some View {
-        Group {
-            if requireAppLock {
-                SecureView {
-                    mainTabsView
-                }
-            } else {
-                mainTabsView
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .navigateToPatterns)) { _ in
-            selectedTab = 3
-        }
-    }
+	var body: some View {
+		mainTabsView
+			.onReceive(NotificationCenter.default.publisher(for: .navigateToPatterns)) { _ in
+				selectedTab = 3
+			}
+	}
     
     private var mainTabsView: some View {
         TabView(selection: $selectedTab) {
