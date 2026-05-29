@@ -43,4 +43,31 @@ struct AIInsightService {
             return nil
         }
     }
+	
+	// Generates a structured JSON analysis for the detailed Persona view
+	static func generatePersonaAnalysis(for person: String, contextString: String) async throws -> String? {
+		let model = SystemLanguageModel.default
+		guard model.isAvailable else { return nil }
+		
+		let session = LanguageModelSession()
+		
+		let prompt = """
+   Analyze these interactions with \(person):
+   \(contextString)
+   
+   Respond with ONLY a raw JSON onject (no markdown formatting, no backticks) matching this structure exactly:
+   { 
+   "summary": "A balanced summary of the relationship based on both positive and negative interactions.",
+   "greenFlags": ["List of green flags. ONLY extract green flags from interactions marked 'Overall Experience: Positive'. Explain why using the emotion tags and notes.", "..."],
+   "redFlags": ["List of red flags. Can be extractedfrom any interaction (even positive ones if there is evidence of love bombing, manipulation, trauma bonding, etc.).", "..."]
+   }
+   """
+		
+		do {
+			let response = try await session.respond(to: prompt)
+			return response.content
+		} catch {
+			return nil
+		}
+	}
 }

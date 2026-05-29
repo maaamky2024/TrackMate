@@ -27,6 +27,7 @@ struct NewInteractionEntryView: View {
     @State private var didFeelRespected: String = "I'm Not Sure"
     @State private var didFeelBoundariesAcknowledged: String = "I'm Not Sure"
     @State private var didFeelEmotionallySafe: String = "I'm Not Sure"
+	@State private var overallExperience: String = "I'm Not Sure"
     
     @State private var postSaveInsight: PostSaveInsight?
     @State private var showInsightSheet = false
@@ -40,6 +41,7 @@ struct NewInteractionEntryView: View {
     private let interactionTypes = ["In-person", "Phone call", "Text/DM", "Social media", "Other"]
     private let emotionOptions = ["Happy", "Sad", "Calm", "Anxious", "Confused", "Belittled", "Loved", "Angry", "Guilty", "Invalidated", "Empowered", "Safe", "Unsafe"]
     private let responseOptions = ["Yes", "No", "I'm Not Sure"]
+	private let overallOptions = ["Positive", "Negative", "I'm Not Sure"]
     
     private let aiFinder = RedFlagFinder()
     
@@ -48,7 +50,7 @@ struct NewInteractionEntryView: View {
 	   NavigationStack {
 		  Form {
 			 
-			 // MARK: - Who
+			 // MARK: - Get personName
 			 Section(header: sectionHeader("Who did you interact with?")) {
 				TextField("", text: $personName)
 				    .foregroundColor(themeManager.color("PrimaryText"))
@@ -60,7 +62,7 @@ struct NewInteractionEntryView: View {
 			 }
 			 .listRowBackground(themeManager.color("CardFill"))
 			 
-			 // MARK: - Type
+			 // MARK: - Get interactionType
 			 Section(header: sectionHeader("Interaction Type")) {
 				Picker("Select type", selection: $interactionType) {
 				    ForEach(interactionTypes, id: \.self) { type in
@@ -74,7 +76,7 @@ struct NewInteractionEntryView: View {
 			 .listRowBackground(themeManager.color("CardFill"))
 			 
 			 
-			 // MARK: - Summary
+			 // MARK: - Interaction Summary
 			 Section(
 				header: sectionHeader("Brief Summary (What happened?)"),
 				footer: Text("You can add a deep-dive journal reflection after saving.")
@@ -124,7 +126,7 @@ struct NewInteractionEntryView: View {
 			 }
 			 .listRowBackground(themeManager.color("CardFill"))
 			 
-			 // MARK: - Reflection questions
+			 // MARK: - Safety Check-in questions
 			 Section(header: sectionHeader("Safety Check-in")) {
 				reflectiveQuestion(
 				    prompt: "Did you feel respected during this interaction?",
@@ -140,6 +142,11 @@ struct NewInteractionEntryView: View {
 				    prompt: "Did you feel safe while interacting with this person?",
 				    selection: $didFeelEmotionallySafe
 				)
+				 
+				 reflectiveQuestion(
+					prompt: "Overall, would you say this was a positive or negative interaction?",
+					selection: $overallExperience,
+				 )
 			 }
 			 .listRowBackground(themeManager.color("CardFill"))
 		  }
@@ -220,6 +227,7 @@ struct NewInteractionEntryView: View {
 	   newEntry.didFeelRespected = didFeelRespected
 	   newEntry.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
 	   newEntry.didFeelEmotionallySafe = didFeelEmotionallySafe
+	    newEntry.overallExperience = overallExperience
 	   
 	    let aiResult = aiFinder.predict(text: notes)
 	    
