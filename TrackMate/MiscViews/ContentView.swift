@@ -25,19 +25,23 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             InteractionsTabView()
                 .tabItem {
-                    Label(
-                        "Interactions",
-                        systemImage: "person.2.circle.fill"
-                    )
+				 Label {
+					 Text("Interactions")
+				 } icon: {
+					 Image("InteractionTabIcon")
+						 .renderingMode(.template)
+				 }
                 }
                 .tag(0)
             
             RedFlagsTabView()
                 .tabItem {
-                    Label(
-                        "Red Flags",
-                        systemImage: "exclamationmark.triangle.fill"
-                    )
+				 Label {
+					 Text("Red Flags")
+				 } icon: {
+					 Image("RedFlagTabIcon")
+						 .renderingMode(.template)
+				 }
                 }
                 .tag(1)
 		   
