@@ -18,8 +18,6 @@ struct InteractionDetailView: View {
     @State private var hasProcessedFlags = false
     @State private var showingEdit = false
     @State private var suggestions: [(RedFlags, String)] = []
-    @State private var showingLinkJournalSheet = false
-    @State private var showingWriteNewJournal = false
 	@State private var showingAddContextSheet = false
 	
 	private var sortedContextNotes: [ContextNote] {
@@ -34,18 +32,6 @@ struct InteractionDetailView: View {
         f.timeStyle = .short
         return f
     }()
-    
-    // MARK: - Precomputed Data
-    
-    private var sortedEntries: [JournalEntry] {
-        guard let entries = interaction.journalEntries as? Set<JournalEntry> else {
-            return []
-        }
-        
-        return entries.sorted {
-            ($0.timestamp ?? .distantPast) > ($1.timestamp ?? .distantPast)
-        }
-    }
     
     // MARK: - Body
     

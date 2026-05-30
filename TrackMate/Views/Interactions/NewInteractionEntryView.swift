@@ -229,23 +229,6 @@ struct NewInteractionEntryView: View {
 			newEntry.flagConfidence = aiResult.confidence
 			print("AI Result: Inconclusive")
 		}
-		// Logic for contact matching
-		let contactRequest: NSFetchRequest<Contact> = Contact.fetchRequest()
-		contactRequest.predicate = NSPredicate(format: "name == [c] %@", personName)
-		contactRequest.fetchLimit = 1
-		
-		let resolvedContact: Contact
-		if let existingContacts = try? viewContext.fetch(contactRequest), let first = existingContacts.first {
-			resolvedContact = first
-		} else {
-			resolvedContact = Contact(context: viewContext)
-			resolvedContact.id = UUID()
-			resolvedContact.name = personName
-			resolvedContact.creationDate = Date()
-		}
-		
-		newEntry.contact = resolvedContact
-		newEntry.personName = resolvedContact.name
 		
 		do {
 			try viewContext.save()

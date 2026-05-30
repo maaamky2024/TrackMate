@@ -10,10 +10,6 @@ import CoreData
 import SwiftUI
 
 class InteractionViewModel: ObservableObject {
-	@Published var searchFilterText: String = ""
-	
-	private let finder = RedFlagFinder()
-	private let confidenceThreshold: Double = 0.70
 	
 	func addContextNote(to interaction: Interaction, text: String, context: NSManagedObjectContext) {
 		let textToSave = text.trimmingCharacters(in: .whitespacesAndNewlines)
