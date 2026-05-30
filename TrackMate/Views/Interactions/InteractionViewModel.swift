@@ -40,7 +40,7 @@ class InteractionViewModel: ObservableObject {
 				
 				// Schedule hindsight reflection notification (24 hours after logging)
 				let safeName = personName.isEmpty ? "this person" : personName
-					NotificationManager.shared.scheduleHindsightReflection(for: safeName, interactionId: newInteraction.id ?? UUID())
+				NotificationManager.shared.scheduleHindsightReflection(for: safeName, interactionId: newInteraction.id ?? UUID())
 				
 			} else {
 				newInteraction.detectedRedFlag = "Inconclusive."
@@ -48,10 +48,10 @@ class InteractionViewModel: ObservableObject {
 				print(" Saved as Inconclusive.")
 				
 			}
-				do {
-					try context.save()
-				} catch {
-					print("Core Data Save Failed: \(error.localizedDescription)")
+			do {
+				try context.save()
+			} catch {
+				print("Core Data Save Failed: \(error.localizedDescription)")
 			}
 		}
 	}
@@ -67,15 +67,35 @@ class InteractionViewModel: ObservableObject {
 			newNote.id = UUID()
 			newNote.timeStamp = timeStamp
 			newNote.text = textToSave
-			newNote.tonalMarker = "Pending" // Placeholder for phase 4 ML integration
+			newNote.tonalMarker = "Analyzing..." // Temporary placeholder while the AI thinks
 			
 			interaction.addToContextNotes(newNote)
 			
 			do {
 				try context.save()
-				print("Context Note appended to interaction with \(interaction.personName ?? "Unknown").")
+				print("Context note saved! Analyzing new information...")
 			} catch {
 				print("Core Data Save Failed for Context Note: \(error.localizedDescription)")
+				return // Exit early if save fails
+			}
+			
+			// Launch background task to analyze the user's tone
+			let noteID = newNote.objectID
+			Task {
+				let detectedTone = (try? await AIInsightService.analyzeUserTone(text: textToSave)) ?? "Unanalyzed"
+				
+				// Back to the Core Data queue to update attribute
+				await context.perform {
+					if let noteToUpdate = context.object(with: noteID) as? ContextNote {
+						noteToUpdate.tonalMarker = detectedTone
+						do {
+							try context.save()
+							print("AI Tone Analysis Complete: \(detectedTone)")
+						} catch {
+							print("Failed to save updated tone: \(error.localizedDescription)")
+						}
+					}
+				}
 			}
 		}
 	}

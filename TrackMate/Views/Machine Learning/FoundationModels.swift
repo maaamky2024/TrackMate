@@ -70,4 +70,33 @@ struct AIInsightService {
 			return nil
 		}
 	}
+	
+	// Analyzes the user's notes to detect their emotional baseline or escalation
+	static func analyzeUserTone(text: String) async throws -> String {
+		let model = SystemLanguageModel.default
+		// if the model isn't available or if the text is empty, defaults to Neutral
+		guard model.isAvailable, !text.isEmpty else { return "Neutral" }
+		
+		let session = LanguageModelSession()
+		
+		let prompt = """
+					You are a neutral communication analyzer for a personal reflection app. Analyze the following text written by a user reflecting on an interpersonal interaction.
+					Classify the tone of the user's text into EXACTLY ONE of the follwing categories:
+					- Reflective (They are taking a step back, looking at the big picture, or acknowledging multiple sides)
+					- Neutral (Just stating the facts, no strong emotion)
+					- Defensive (Protecting themselves, justifying behavior, or shifting blame off of themself)
+					- Escalated (Highly aggressive, attacking the other person, or using extreme language)
+					- Frustrated (Annoyed or venting, but not necessarily aggressive)
+					TEXT: "\(text)"
+					Respond with ONLY the exact category name. Do not add any punctuation, markdown, or explanation.
+			"""
+		
+		do {
+			let response = try await session.respond(to: prompt)
+			return response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+		} catch {
+			print("Tone analysis failed: \(error.localizedDescription)")
+			return "Unanalyzed"
+		}
+	}
 }

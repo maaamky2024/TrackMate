@@ -281,7 +281,12 @@ struct InteractionDetailView: View {
 				// Timeline loop
 				ForEach(sortedContextNotes, id: \.id) { note in
 					VStack(alignment: .leading, spacing: 6) {
+					HStack {
 						Text(note.timeStamp ?? Date(), formatter: dateFormatter)
+						Spacer()
+						Text(note.tonalMarker ?? "")
+							.italic()
+					}
 							.font(.caption)
 							.foregroundColor(themeManager.color("SecondaryText"))
 						
