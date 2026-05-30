@@ -17,7 +17,7 @@ struct ContentView: View {
 	var body: some View {
 		mainTabsView
 			.onReceive(NotificationCenter.default.publisher(for: .navigateToPatterns)) { _ in
-				selectedTab = 3
+				selectedTab = 2
 			}
 	}
     
@@ -76,4 +76,8 @@ struct ContentView: View {
     ContentView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
         .environmentObject(ThemeManager.shared)
+}
+
+extension Notification.Name {
+	static let navigateToPatterns = Notification.Name("navigateToPatterns")
 }

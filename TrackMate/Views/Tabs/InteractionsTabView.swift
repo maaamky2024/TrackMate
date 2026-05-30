@@ -27,10 +27,12 @@ struct InteractionsTabView: View {
             let content = interaction.notes ?? ""
             let person = interaction.personName ?? ""
             let type = interaction.interactionType ?? ""
+		   let flag = interaction.detectedRedFlag ?? ""
             let tags = (interaction.emotionTags as? [String]) ?? []
             return content.localizedCaseInsensitiveContains(searchText)
                 || person.localizedCaseInsensitiveContains(searchText)
                 || type.localizedCaseInsensitiveContains(searchText)
+			 || flag.localizedCaseInsensitiveContains(searchText)
                 || tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
         }
     }

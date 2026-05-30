@@ -11,7 +11,6 @@ import SwiftUI
 import CoreData
 
 struct NewInteractionEntryView: View {
-    @StateObject private var viewModel = InteractionViewModel()
     @Environment(\.managedObjectContext) private var viewContext: NSManagedObjectContext
     
     @Environment(\.dismiss) private var dismiss
@@ -270,18 +269,6 @@ struct NewInteractionEntryView: View {
 		  }
 		   
 		   finishSaveFlow()
-		  
-		  let contactID = resolvedContact.objectID
-		  Task {
-			 let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-			 
-			 if let backgroundContact = try? backgroundContext.existingObject(with: contactID) as? Contact {
-				
-				if let payload = await PatternAnalysisService.buildAnalysisPayload(for: backgroundContact, context: backgroundContext) {
-				    print("Payload generated: \n\(payload)")
-				}
-			 }
-		  }
 	   } catch {
 		  print("Error saving entry: \(error.localizedDescription)")
 	   }

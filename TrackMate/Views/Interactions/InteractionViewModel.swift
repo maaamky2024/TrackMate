@@ -43,7 +43,7 @@ class InteractionViewModel: ObservableObject {
 				NotificationManager.shared.scheduleHindsightReflection(for: safeName, interactionId: newInteraction.id ?? UUID())
 				
 			} else {
-				newInteraction.detectedRedFlag = "Inconclusive."
+				newInteraction.detectedRedFlag = "Inconclusive"
 				newInteraction.flagConfidence = analysisResult.confidence
 				print(" Saved as Inconclusive.")
 				

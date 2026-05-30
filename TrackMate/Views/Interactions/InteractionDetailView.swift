@@ -194,6 +194,8 @@ struct InteractionDetailView: View {
                 answer: interaction.didFeelEmotionallySafe ?? "-")
             .foregroundColor(themeManager.color("SecondaryText"))
             
+		   reflectionRow(question: "4.) Overall positive interaction?", answer: interaction.overallExperience ?? "-")
+			   .foregroundColor(themeManager.color("SecondaryText"))
         }
     }
     
