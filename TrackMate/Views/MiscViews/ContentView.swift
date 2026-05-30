@@ -47,19 +47,23 @@ struct ContentView: View {
 		   
 		   AnalysisView()
 			   .tabItem {
-				   Label(
-					"Analysis",
-					systemImage: "brain.head.profile"
-				   )
+				   Label {
+					   Text("Analysis")
+				   } icon: {
+					   Image("AnalysisTabIcon")
+						   .renderingMode(.template)
+				   }
 			   }
 			   .tag(2)
             
             SettingsTabView()
                 .tabItem {
-                    Label(
-                        "Settings",
-                        systemImage: "gearshape"
-                    )
+				 Label {
+					 Text("Settings")
+				 } icon: {
+					 Image("SettingsTabIcon")
+						 .renderingMode(.template)
+				 }
                 }
                 .tag(3)
         }
