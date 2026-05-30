@@ -16,6 +16,8 @@ struct RedFlagResourceData: Codable {
 	let resources: [String]
 }
 struct PatternReport {
+	var isSelfReflection: Bool = false
+	
 	let offenderName: String
 	let primaryTactic: String
 	let primaryMedium: String

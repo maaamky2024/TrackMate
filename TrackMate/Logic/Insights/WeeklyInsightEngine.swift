@@ -62,6 +62,37 @@ struct WeeklyInsightEngine {
         
         return sentence
     }
+	
+	static func generateFrictionReport(for personName: String, in interactions: [Interaction]) -> PatternReport? {
+		let relevantInteractions = interactions.filter { $0.personName == personName }
+		
+		var negativeTones: [String] = []
+		
+		for interaction in relevantInteractions {
+			if let notes = interaction.contextNotes as? Set<ContextNote> {
+				for note in notes {
+					if let tone = note.tonalMarker, tone == "Escalated" || tone == "Defensive" || tone == "Frustrated" {
+						negativeTones.append(tone)
+					}
+				}
+			}
+		}
+		
+		guard negativeTones.count >= 2 else { return nil }
+		
+		let counts = negativeTones.reduce(into: [:]) { counts, tone in counts[tone, default: 0] += 1 }
+		let primaryTone = counts.max(by: { $0.value < $1.value })?.key ?? "Frustrated"
+		
+		return PatternReport(
+			isSelfReflection: true,
+			offenderName: personName,
+			primaryTactic: primaryTone,
+			primaryMedium: "various interactions",
+			incidentCount: negativeTones.count,
+			contextualExample: "When looking back at these interactions, do you feel your reactions matched the situation, or is outside stress playing a role?",
+			suggestedResource: nil
+		)
+	}
     
     // MARK: - Helpers
     

@@ -21,33 +21,62 @@ struct AutomatedInsightCard: View {
 	   if !isDismissed {
 		  VStack(alignment: .leading, spacing: 16) {
 			 
+			  // MARK: - Dynamic Header
 			 HStack {
-				Image(systemName: "exclamationmark.shield.fill")
-				    .foregroundColor(themeManager.color("AccentColor"))
-				Text("Pattern Detected")
-				    .font(.headline)
-				    .foregroundColor(themeManager.color("PrimaryText"))
+				 if report.isSelfReflection {
+					 // Embed Tracking Mate for mediation
+					 TrackingMateView(imageName: "TrackingMateAvatar")
+						 .frame(width: 30, height: 30)
+					 Text("TrackingMate Insight")
+						 .font(.headline)
+						 .foregroundColor(themeManager.color("PrimaryText"))
+				 } else {
+					 
+					 Image(systemName: "exclamationmark.shield.fill")
+						 .foregroundColor(themeManager.color("AccentColor"))
+					 Text("Pattern Detected")
+						 .font(.headline)
+						 .foregroundColor(themeManager.color("PrimaryText"))
+				 }
 				Spacer()
 			 }
 			 
 			 Divider()
 			 
-			 VStack(alignment: .leading, spacing: 12) {
-				Text("A recurring pattern in your entries has been identified.")
-				    .font(.subheadline)
-				    .foregroundColor(themeManager.color("SecondaryText"))
-				
-				VStack(alignment: .leading, spacing: 8) {
-				    Text("**Offender:** \(report.offenderName)")
-				    
-					Text("**Pattern:** Used \(Text(report.primaryTactic).bold().foregroundColor(.red)) \(report.incidentCount) times.")
-				    
-				    Text("**Context:** \(report.contextualExample ?? "Based on recent emotional shifts and logged interactions.")")
-					   .italic()
-				    
-				    Text("**Occurs:** Most frequently during \(report.primaryMedium).")
-				}
-			 }
+			  // MARK: - Dynamic Content
+			  VStack(alignment: .leading, spacing: 12) {
+				  if report.isSelfReflection {
+					  // Neutral Self-reflection UI
+					  Text("I noticed a trend in your recent communication logs.")
+						  .font(.subheadline)
+						  .foregroundColor(themeManager.color("SecondaryText"))
+					  
+					  VStack(alignment: .leading, spacing: 8) {
+						  Text("**Person:** \(report.offenderName)")
+						  Text("**Tone Trend:** Your hindsight notes have frequently been marked as \(Text(report.primaryTactic).bold().foregroundColor(themeManager.color("AccentColor"))) (\(report.incidentCount) times).")
+						  
+						  Text("**Reflection Prompt:**\n\(report.contextualExample ?? "What is the common denominator in these moments? Are there external stressors playing a role?")")
+							  .italic()
+							  .padding(.top, 4)
+					  }
+				  } else {
+					  // Original External red flag UI
+					  Text("A recurring pattern in your entries has been identified.")
+						  .font(.subheadline)
+						  .foregroundColor(themeManager.color("SecondaryText"))
+					  
+					  VStack(alignment: .leading, spacing: 8) {
+						  Text("**Offender:** \(report.offenderName)")
+						  
+						  Text("**Pattern:** Used \(Text(report.primaryTactic).bold().foregroundColor(.red)) \(report.incidentCount) times.")
+						  
+						  Text("**Context:** \(report.contextualExample ?? "Based on recent emotional shifts and logged interactions.")")
+							  .italic()
+						  
+						  Text("**Occurs:** \(report.primaryMedium).")
+					  }
+				  }
+			  }
 			 .font(.body)
 			 .foregroundColor(themeManager.color("PrimaryText"))
 			 
@@ -97,8 +126,8 @@ struct AutomatedInsightCard: View {
 				showingFalseFlagAlert = true
 			 }) {
 				HStack {
-				    Image(systemName: "flag.slash")
-				    Text("Report as Misinterpretation")
+					Image(systemName: report.isSelfReflection ? "hand.thumbsdown" : "flag.slash")
+					Text(report.isSelfReflection ? "This insight isn't helpful" : "Report as Misinterpretation")
 				}
 				.font(.caption)
 				.foregroundColor(themeManager.color("SecondaryText"))
@@ -114,7 +143,7 @@ struct AutomatedInsightCard: View {
 			 RoundedRectangle(cornerRadius: 16)
 				.stroke(themeManager.color("AccentColor").opacity(0.3), lineWidth: 1)
 		  )
-		  .alert("Flag as Inaccurate?", isPresented: $showingFalseFlagAlert) {
+		  .alert(report.isSelfReflection ? "Dismiss Insight?" : "Flag as Inaccurate?", isPresented: $showingFalseFlagAlert) {
 			 Button("Yes, dismiss pattern", role: .destructive) {
 				
 				withAnimation {
@@ -123,7 +152,7 @@ struct AutomatedInsightCard: View {
 			 }
 			 Button("Cancel", role: .cancel) { }
 		  } message: {
-			 Text("This helps TrackMate learn your boundaries and avoid false alarms in the future.")
+			  Text(report.isSelfReflection ? "TrackingMate will recalibrate based on your feedback." : "This helps TrackMate learn your boundaries and avoid false alarms in the future.")
 		  }
 	   }
     }
