@@ -20,6 +20,12 @@ struct InteractionDetailView: View {
     @State private var suggestions: [(RedFlags, String)] = []
     @State private var showingLinkJournalSheet = false
     @State private var showingWriteNewJournal = false
+	@State private var showingAddContextSheet = false
+	
+	private var sortedContextNotes: [ContextNote] {
+		guard let notes = interaction.contextNotes as? Set<ContextNote> else { return [] }
+		return notes.sorted { ($0.timeStamp ?? .distantPast) < ($1.timeStamp ?? .distantPast) }
+	}
 	
     // MARK: - Date formatter
     private let dateFormatter: DateFormatter = {
@@ -50,7 +56,7 @@ struct InteractionDetailView: View {
                 typeAndNotesSection()
                 emotionsSection()
                 reflectionSection()
-                linkedJournalsSection()
+			  contextNotesSection()
                 redFlagSuggestionsSection()
             }
             .padding()
@@ -75,14 +81,15 @@ struct InteractionDetailView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showingLinkJournalSheet = true
-                } label: {
-                    Image(systemName: "link")
-                }
-                .foregroundColor(themeManager.color("AccentColor"))
-            }
+		   ToolbarItem(placement: .navigationBarTrailing) {
+			   Button {
+				   showingAddContextSheet = true
+			   } label: {
+				   Image(systemName: "text.badge.plus")
+			   }
+			   .foregroundColor(themeManager.color("AccentColor"))
+		   }
+		   
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Edit") {
                     showingEdit = true
@@ -99,6 +106,12 @@ struct InteractionDetailView: View {
             EditInteractionView(interaction: interaction)
                 .environment(\.managedObjectContext, viewContext)
         }
+	    
+	   .sheet(isPresented: $showingAddContextSheet) {
+		   QuickReflectionSheet(parentInteraction: interaction)
+			   .environment(\.managedObjectContext, viewContext)
+			   .environmentObject(themeManager)
+	   }
         .trackMateNav(title: "Interaction Details", themeManager: themeManager)
     }
     
@@ -195,68 +208,6 @@ struct InteractionDetailView: View {
         .foregroundColor(themeManager.color("SecondaryText"))
     }
     
-    private func linkedJournalsSection() -> some View {
-	    if sortedEntries.isEmpty {
-		    return AnyView(
-			VStack(alignment: .leading, spacing: 10) {
-				Divider()
-				
-				Text("Reflections")
-					.font(.headline)
-					.foregroundColor(themeManager.color("PrimaryText"))
-				
-				VStack(spacing: 12) {
-					Text("No journal linked to this interaction.")
-						.font (.subheadline)
-						.foregroundColor(themeManager.color("SecondaryText"))
-					
-					HStack(spacing: 16) {
-						Button(action: { showingWriteNewJournal = true }) {
-							Text("Write New")
-								.font(.subheadline.bold())
-								.frame(maxWidth: .infinity)
-								.padding(.vertical, 10)
-								.background(themeManager.color("AccentColor"))
-								.foregroundColor(.white)
-								.cornerRadius(8)
-						}
-						
-						Button(action: { showingLinkJournalSheet = true}) {
-							Text("Link Existing")
-								.font(.subheadline.bold())
-								.frame(maxWidth: .infinity)
-								.padding(.vertical, 10)
-								.background(themeManager.color("CardFill"))
-								.foregroundColor(themeManager.color("AccentColor"))
-								.overlay(
-									RoundedRectangle(cornerRadius: 8)
-										.stroke(themeManager.color("AccentColor"), lineWidth: 1)
-								)
-						}
-					}
-				}
-				.padding()
-				.background(themeManager.color("CardFill"))
-				.cornerRadius(12)
-			}
-		    )
-	    }
-	    
-	    return AnyView(
-		VStack(alignment: .leading, spacing: 10) {
-			Divider()
-			
-			Text("Reflections")
-				.font(.headline)
-				.foregroundColor(themeManager.color("PrimaryText"))
-			
-                Text("\(sortedEntries.count) journal entr\(sortedEntries.count == 1 ? "y" : "ies") linked")
-                    .font(.subheadline)
-                    .foregroundColor(themeManager.color("SecondaryText"))
-            }
-        )
-    }
-    
 	@MainActor
     private func performFlagMatching() async -> [(RedFlags, String)] {
         let matches = RedFlagMatcher.matches(for: interaction)
@@ -315,5 +266,36 @@ struct InteractionDetailView: View {
                 .padding(.top, 16)
         )
     }
+	
+	private func contextNotesSection() -> some View {
+		guard !sortedContextNotes.isEmpty else { return AnyView(EmptyView()) }
+		
+		return AnyView(
+			VStack(alignment: .leading, spacing: 12) {
+				Divider()
+				
+				Text("Hindsight & Context Thread")
+					.font(.headline)
+					.foregroundColor(themeManager.color("PrimaryText"))
+				
+				// Timeline loop
+				ForEach(sortedContextNotes, id: \.id) { note in
+					VStack(alignment: .leading, spacing: 6) {
+						Text(note.timeStamp ?? Date(), formatter: dateFormatter)
+							.font(.caption)
+							.foregroundColor(themeManager.color("SecondaryText"))
+						
+						Text(note.text ?? "")
+							.font(.body)
+							.foregroundColor(themeManager.color("PrimaryText"))
+					}
+					.padding()
+					.frame(maxWidth: .infinity, alignment: .leading)
+					.background(themeManager.color("CardFill"))
+					.cornerRadius(12)
+				}
+			}
+		)
+	}
 }
 
