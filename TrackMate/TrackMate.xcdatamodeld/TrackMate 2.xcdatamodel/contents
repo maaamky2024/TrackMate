@@ -7,6 +7,13 @@
         <relationship name="insights" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PatternInsight" inverseName="contact" inverseEntity="PatternInsight"/>
         <relationship name="interactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Interaction" inverseName="contact" inverseEntity="Interaction"/>
     </entity>
+    <entity name="ContextNote" representedClassName="ContextNote" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timeStamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="tonalMarker" optional="YES" attributeType="String"/>
+        <relationship name="interaction" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Interaction" inverseName="contextNotes" inverseEntity="Interaction"/>
+    </entity>
     <entity name="DissmissedFlag" representedClassName="DissmissedFlag" syncable="YES" codeGenerationType="class">
         <attribute name="dateDismissed" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="originalText" optional="YES" attributeType="String"/>
@@ -25,6 +32,7 @@
         <attribute name="personName" attributeType="String" defaultValueString="Unknown"/>
         <attribute name="timestamp" attributeType="Date" defaultDateTimeInterval="793313580" usesScalarValueType="NO"/>
         <relationship name="contact" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Contact" inverseName="interactions" inverseEntity="Contact"/>
+        <relationship name="contextNotes" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ContextNote" inverseName="interaction" inverseEntity="ContextNote"/>
         <relationship name="journalEntries" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="JournalEntry" inverseName="linkedInteraction" inverseEntity="JournalEntry"/>
     </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">

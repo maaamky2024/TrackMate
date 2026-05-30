@@ -50,4 +50,28 @@ class InteractionViewModel: ObservableObject {
 			}
 		}
 	}
+	
+	func addContextNote(to interaction: Interaction, text: String, context: NSManagedObjectContext) {
+		let textToSave = text.trimmingCharacters(in: .whitespacesAndNewlines)
+		guard !textToSave.isEmpty else { return }
+		
+		let timeStamp = Date()
+		
+		context.perform {
+			let newNote = ContextNote(context: context)
+			newNote.id = UUID()
+			newNote.timeStamp = timeStamp
+			newNote.text = textToSave
+			newNote.tonalMarker = "Pending" // Placeholder for phase 4 ML integration
+			
+			interaction.addToContextNotes(newNote)
+			
+			do {
+				try context.save()
+				print("Context Note appended to interaction with \(interaction.personName ?? "Unknown").")
+			} catch {
+				print("Core Data Save Failed for Context Note: \(error.localizedDescription)")
+			}
+		}
+	}
 }
