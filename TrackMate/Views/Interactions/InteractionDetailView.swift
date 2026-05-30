@@ -198,7 +198,7 @@ struct InteractionDetailView: View {
     
 	@MainActor
     private func performFlagMatching() async -> [(RedFlags, String)] {
-        let matches = RedFlagMatcher.matches(for: interaction)
+	    let matches = RedFlagMatcher.matches(for: interaction, context: viewContext)
         guard !matches.isEmpty else { return [] }
         
         let request: NSFetchRequest<RedFlags> = RedFlags.fetchRequest()
