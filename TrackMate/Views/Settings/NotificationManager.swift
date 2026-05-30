@@ -65,4 +65,28 @@ class NotificationManager {
             }
         }
     }
+	
+	func scheduleHindsightReflection(for personName: String, interactionId: UUID, after timeInterval: TimeInterval = 86400) {
+		let content = UNMutableNotificationContent()
+		content.title = "Time to reflect"
+		content.body = "Have your thoughts changed about your interaction with \(personName)? Take a moment to add a note that gives more context to what happened."
+		content.sound = UNNotificationSound.default
+		
+		// Store ID to deep-link to the exact interaction (later)
+		content.userInfo = ["interactionId": interactionId.uuidString]
+		
+		// TimeInterval trigger (24 hours)
+		let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)
+		
+		// Use the interaction ID to prevent duplicate notifications for the same interaction
+		let request = UNNotificationRequest(identifier: "Hindsight-\(interactionId.uuidString)", content: content, trigger: trigger)
+		
+		UNUserNotificationCenter.current().add(request) { error in
+			if let error = error {
+				print("Error scheduling hindsight notification: \(error.localizedDescription)")
+			} else {
+				print("Hindsight reflection scheduled for \(personName) in \(timeInterval / 3600) hours.")
+			}
+		}
+	}
 }

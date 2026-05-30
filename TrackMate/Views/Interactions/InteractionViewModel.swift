@@ -37,6 +37,11 @@ class InteractionViewModel: ObservableObject {
 				newInteraction.detectedRedFlag = analysisResult.label
 				newInteraction.flagConfidence = analysisResult.confidence
 				print("Saved with Flag: \(analysisResult.label) (\(Int(analysisResult.confidence * 100))%)")
+				
+				// Schedule hindsight reflection notification (24 hours after logging)
+				let safeName = personName.isEmpty ? "this person" : personName
+					NotificationManager.shared.scheduleHindsightReflection(for: safeName, interactionId: newInteraction.id ?? UUID())
+				
 			} else {
 				newInteraction.detectedRedFlag = "Inconclusive."
 				newInteraction.flagConfidence = analysisResult.confidence
