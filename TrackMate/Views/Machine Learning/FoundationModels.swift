@@ -99,4 +99,35 @@ struct AIInsightService {
 			return "Unanalyzed"
 		}
 	}
+	
+	// Generates dynamic context explaining why a pattern was flagged
+	static func generatePatternSynthesis(for person: String, tactic: String, interactions: [Interaction]) async throws -> String? {
+		let model = SystemLanguageModel.default
+		guard model.isAvailable, !interactions.isEmpty else { return nil }
+		
+		let session = LanguageModelSession()
+		
+		// Format the last 5 interactions to feed into the prompt
+		let formattedLogs = interactions.suffix(5).enumerated().compactMap { index, interaction in
+			guard let notes = interaction.notes, !notes.isEmpty else { return nil }
+			return "Interaction \(index + 1): \(notes)"
+		}.joined(separator: "\n")
+		
+		let prompt = """
+					You are a behavioral pattern analyzer for a personal reflection app. Review the following interaction logs between the user and \(person), which have been flagged for the behavior: \(tactic).
+					LOGS:
+					\(formattedLogs)
+					TASK:
+					1. Write a 1 to 2 sentence explanation addressing why these interactions form a pattern of \(tactic). Focus on the conversational or emotional shift.
+					2. Summarize the relevant evidence from each log in a single, bulleted sentence.
+					Respond ONLY with the synthesized explanation followed by the bullet points. Do not include introductory text.
+			"""
+		do {
+			let response = try await session.respond(to: prompt)
+			return response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+		} catch {
+			print("Pattern Synthesis failed: \(error.localizedDescription)")
+			return nil
+		}
+	}
 }

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 class PatternInsightService {
-	static func generateReport(from interactions: [Interaction]) -> PatternReport? {
+	static func generateReport(from interactions: [Interaction]) async -> PatternReport? {
 		let flaggedInteractions = interactions.filter {
 			$0.detectedRedFlag != nil &&
 			$0.detectedRedFlag != "Inconclusive" &&
@@ -36,12 +36,14 @@ class PatternInsightService {
 		
 		let matchedResource = fetchResource(for: topTactic)
 		
+		let synthesis = try? await AIInsightService.generatePatternSynthesis(for: topOffender, tactic: topTactic, interactions: tacticInteractions)
+		
 		return PatternReport(
 			offenderName: topOffender,
 			primaryTactic: topTactic,
 			primaryMedium: topMedium,
 			incidentCount: tacticCount,
-			contextualExample: tacticInteractions.last?.notes,
+			dynamicSynthesis: synthesis,
 			suggestedResource: matchedResource
 		)
 	}

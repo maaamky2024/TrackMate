@@ -55,7 +55,7 @@ struct AutomatedInsightCard: View {
 						  Text("**Person:** \(report.offenderName)")
 						  Text("**Tone Trend:** Your hindsight notes have frequently been marked as \(Text(report.primaryTactic).bold().foregroundColor(themeManager.color("AccentColor"))) (\(report.incidentCount) times).")
 						  
-						  Text("**Reflection Prompt:**\n\(report.contextualExample ?? "What is the common denominator in these moments? Are there external stressors playing a role?")")
+						  Text("**Reflection Prompt:**\n\(report.dynamicSynthesis ?? "What is the common denominator in these moments? Are there external stressors playing a role?")")
 							  .italic()
 							  .padding(.top, 4)
 					  }
@@ -70,8 +70,10 @@ struct AutomatedInsightCard: View {
 						  
 						  Text("**Pattern:** Used \(Text(report.primaryTactic).bold().foregroundColor(.red)) \(report.incidentCount) times.")
 						  
-						  Text("**Context:** \(report.contextualExample ?? "Based on recent emotional shifts and logged interactions.")")
-							  .italic()
+						  if let synthesis = report.dynamicSynthesis {
+							  Text("**Why this was flagged:**\n\(synthesis)")
+								  .padding(.top, 4)
+						  }
 						  
 						  Text("**Occurs:** \(report.primaryMedium).")
 					  }
@@ -119,6 +121,13 @@ struct AutomatedInsightCard: View {
 				.padding(.top, 4)
 			 }
 			 
+			  Text("AI can make mistakes. Please review your logs to ensure this context aligns with your experience.")
+				  .font(.caption2)
+				  .foregroundColor(themeManager.color("SecondaryText"))
+				  .italic()
+				  .multilineTextAlignment(.center)
+				  .frame(maxWidth: .infinity)
+				  .padding(.top, 4)
 			 Divider()
 				.padding(.top, 4)
 			 

@@ -11,6 +11,9 @@ import CoreData
 struct AnalysisView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var themeManager: ThemeManager
+	
+	@State private var currentReport: PatternReport?
+	@State private var isAnalyzing = false
     
     @FetchRequest(
 	   entity: Interaction.entity(),
@@ -52,8 +55,20 @@ struct AnalysisView: View {
 					   .foregroundColor(themeManager.color("PrimaryText"))
 					   .padding(.horizontal)
 				    
-				    if let report = PatternInsightService.generateReport(from: Array(allInteractions)) {
-					   
+					if isAnalyzing {
+						VStack(spacing: 12) {
+							ProgressView()
+								.scaleEffect(1.5)
+							Text("Synthesizing patterns...")
+								.font(.subheadline)
+								.foregroundColor(themeManager.color("SecondaryText"))
+						}
+								.padding(30)
+								.frame(maxWidth: .infinity)
+								.background(themeManager.color("CardFill"))
+								.cornerRadius(16)
+								.padding(.horizontal)
+						} else if let report = currentReport {
 					   AutomatedInsightCard(report: report)
 						  .padding(.horizontal)
 				    } else {
@@ -197,6 +212,11 @@ struct AnalysisView: View {
 				}
 			 }
 			 .padding(.bottom, 30)
+			 .task(id: allInteractions.count) {
+				 isAnalyzing = true
+				 currentReport = await PatternInsightService.generateReport(from: Array(allInteractions))
+				 isAnalyzing = false
+			 }
 		  }
 		  .background(themeManager.color("PrimaryBackground"))
 		  .navigationTitle("Analysis")

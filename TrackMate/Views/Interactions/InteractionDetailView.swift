@@ -198,9 +198,21 @@ struct InteractionDetailView: View {
     
 	@MainActor
     private func performFlagMatching() async -> [(RedFlags, String)] {
-	    let matches = RedFlagMatcher.matches(for: interaction, context: viewContext)
-        guard !matches.isEmpty else { return [] }
-        
+	  let mlModel = RedFlagFinder()
+	    let feedbackRepo = FeedbackRepository(context: viewContext)
+	    let similarityEvaluator = SemanticSimilarityEvaluator()
+	    
+	    let analyzer = InteractionAnalyzer(
+		mlModel: mlModel,
+		feedbackRepo: feedbackRepo,
+		similarityEvaluator: similarityEvaluator,
+		context: viewContext
+	    )
+	    
+	    guard let matches = try? await analyzer.analyze(interaction: interaction), !matches.isEmpty else {
+		    return []
+	    }
+	    
         let request: NSFetchRequest<RedFlags> = RedFlags.fetchRequest()
         let categories = matches.map { $0.category }
         request.predicate = NSPredicate(format: "category IN %@", categories)

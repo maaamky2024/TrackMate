@@ -22,6 +22,6 @@ struct PatternReport {
 	let primaryTactic: String
 	let primaryMedium: String
 	let incidentCount: Int
-	let contextualExample: String?
+	let dynamicSynthesis: String?
 	let suggestedResource: RedFlagResourceData?
 }

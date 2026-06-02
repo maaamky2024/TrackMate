@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24901" systemVersion="25F71" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24901" systemVersion="25G5028f" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="ContextNote" representedClassName="ContextNote" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="text" optional="YES" attributeType="String"/>
@@ -21,6 +21,13 @@
         <attribute name="personName" attributeType="String" defaultValueString="Unknown"/>
         <attribute name="timestamp" attributeType="Date" defaultDateTimeInterval="793313580" usesScalarValueType="NO"/>
         <relationship name="contextNotes" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ContextNote" inverseName="interaction" inverseEntity="ContextNote"/>
+    </entity>
+    <entity name="InteractionFeedback" representedClassName="InteractionFeedback" syncable="YES" codeGenerationType="class">
+        <attribute name="cachedEmbedding" optional="YES" attributeType="Binary"/>
+        <attribute name="flaggedCategory" optional="YES" attributeType="String"/>
+        <attribute name="originalText" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userContext" optional="YES" attributeType="String"/>
     </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" attributeType="Date" defaultDateTimeInterval="793313940" usesScalarValueType="NO"/>
