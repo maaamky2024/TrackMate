@@ -77,6 +77,22 @@ struct FlaggedHistoryView: View {
 								.foregroundColor(themeManager.color("PrimaryText"))
 						}
 						
+						// Specific Flag Reason
+						if interaction.detectedRedFlag  == flagCategory, let reason = interaction.flagReason, !reason.isEmpty {
+							VStack(alignment: .leading, spacing: 4) {
+								Text("Why this was flagged:")
+									.font(.caption)
+									.bold()
+									.foregroundColor(.red)
+								
+								Text(reason)
+									.font(.subheadline)
+									.italic()
+									.foregroundColor(themeManager.color("PrimaryText"))
+							}
+							.padding(.vertical, 4)
+						}
+						
 						// Emotions
 						if let emotions = interaction.emotionTags as? [String], !emotions.isEmpty {
 							HStack {
