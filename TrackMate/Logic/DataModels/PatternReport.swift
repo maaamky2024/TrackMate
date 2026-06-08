@@ -24,4 +24,6 @@ struct PatternReport {
 	let incidentCount: Int
 	let dynamicSynthesis: String?
 	let suggestedResource: RedFlagResourceData?
+	let firstIncidentDate: Date?
+	let lastIncidentDate: Date?
 }

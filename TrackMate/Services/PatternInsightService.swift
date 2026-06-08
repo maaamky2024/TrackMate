@@ -38,13 +38,17 @@ class PatternInsightService {
 		
 		let synthesis = try? await AIInsightService.generatePatternSynthesis(for: topOffender, tactic: topTactic, interactions: tacticInteractions)
 		
+		let sortedDates = tacticInteractions.compactMap { $0.timestamp }.sorted()
+		
 		return PatternReport(
 			offenderName: topOffender,
 			primaryTactic: topTactic,
 			primaryMedium: topMedium,
 			incidentCount: tacticCount,
 			dynamicSynthesis: synthesis,
-			suggestedResource: matchedResource
+			suggestedResource: matchedResource,
+			firstIncidentDate: sortedDates.first,
+			lastIncidentDate: sortedDates.last
 		)
 	}
 	
