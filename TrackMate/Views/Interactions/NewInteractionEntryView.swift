@@ -220,6 +220,7 @@ struct NewInteractionEntryView: View {
 		if aiResult.label != "Neutral" && aiResult.label != "Unknown" {
 			newEntry.detectedRedFlag = aiResult.label
 			newEntry.flagConfidence = aiResult.confidence
+			newEntry.flagReason = fetchFlagReason(for: aiResult.label)
 			print("AI Flagged: \(aiResult.label)")
 			
 			let safeName = personName.isEmpty ? "this person" : personName
@@ -245,5 +246,18 @@ struct NewInteractionEntryView: View {
 		DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 			dismiss()
 		}
+	}
+	
+	private func fetchFlagReason(for category: String) -> String {
+		let request: NSFetchRequest<RedFlags> = RedFlags.fetchRequest()
+		request.predicate = NSPredicate(format: "category == %@", category)
+		request.fetchLimit = 1
+		
+		if let flag = try? viewContext.fetch(request).first,
+		   let description = flag.redflagDescription {
+			return description
+		}
+		
+		return "Text patterns associated with \(category) were detected in your log."
 	}
 }
