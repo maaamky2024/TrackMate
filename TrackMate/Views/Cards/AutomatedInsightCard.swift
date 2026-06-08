@@ -61,22 +61,27 @@ struct AutomatedInsightCard: View {
 					  }
 				  } else {
 					  // Original External red flag UI
-					  Text("A recurring pattern in your entries has been identified.")
+					  Text("A behavioral cycle has been identified.")
 						  .font(.subheadline)
 						  .foregroundColor(themeManager.color("SecondaryText"))
 					  
 					  VStack(alignment: .leading, spacing: 8) {
-						  Text("**Offender:** \(report.offenderName)")
 						  
-						  Text("**Pattern:** Used \(Text(report.primaryTactic).bold().foregroundColor(.red)) \(report.incidentCount) times.")
-						  
-						  if let synthesis = report.dynamicSynthesis {
-							  Text("**Why this was flagged:**\n\(synthesis)")
-								  .padding(.top, 4)
+						  // MACRO UI TIMELINE
+						  if let firstDate = report.firstIncidentDate, let lastDate = report.lastIncidentDate {
+							  Text("**Cycle Timeline:** Between \(firstDate.formatted(date: .abbreviated, time: .omitted)) and \(lastDate.formatted(date: .abbreviated, time: .omitted)), you logged \(report.incidentCount) interactions with **\(report.offenderName)** exhibiting \(Text(report.primaryTactic).bold().foregroundColor(.red)).")
+						  } else {
+							  // Fallback if dates are missing
+							  Text("**Offender:** \(report.offenderName)")
+							  Text("**Pattern:** Used \(Text(report.primaryTactic).bold().foregroundColor(.red)) \(report.incidentCount) times.")
 						  }
-						  
-						  Text("**Occurs:** \(report.primaryMedium).")
+						  if let synthesis = report.dynamicSynthesis {
+							  Text("**Pattern Context:**\n\(synthesis)")
+								  .padding(.top, 4)
+}
 					  }
+					  
+					  Text("**Primary Medium:** \(report.primaryMedium)")
 				  }
 			  }
 			 .font(.body)
