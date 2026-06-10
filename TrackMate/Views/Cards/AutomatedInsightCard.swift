@@ -25,7 +25,9 @@ struct AutomatedInsightCard: View {
 			 HStack {
 				 if report.isSelfReflection {
 					 // Embed Tracking Mate for mediation
-					 TrackingMateView(imageName: "TrackingMateAvatar")
+					 Image("TrackingMateAvatar")
+						 .resizable()
+						 .scaledToFit()
 						 .frame(width: 30, height: 30)
 					 Text("TrackingMate Insight")
 						 .font(.headline)
