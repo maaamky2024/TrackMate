@@ -45,7 +45,7 @@ struct AIInsightService {
     }
 	
 	// Generates a structured JSON analysis for the detailed Persona view
-	static func generatePersonaAnalysis(for person: String, contextString: String) async throws -> String? {
+	static func generatePersonaAnalysis(for person: String, contextString: String, userCorrections: String = "") async throws -> String? {
 		let model = SystemLanguageModel.default
 		guard model.isAvailable else { return nil }
 		
@@ -54,6 +54,8 @@ struct AIInsightService {
 		let prompt = """
    Analyze these interactions with \(person):
    \(contextString)
+   
+   \(userCorrections.isEmpty ? "" : "USER PROVIDED CONTEXT & CORRECTIONS (CRITICAL: Override or adjust the analysis based on this context): \(userCorrections)")
    
    Respond with ONLY a raw JSON onject (no markdown formatting, no backticks) matching this structure exactly:
    { 

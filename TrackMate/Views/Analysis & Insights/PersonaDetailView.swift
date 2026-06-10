@@ -23,11 +23,15 @@ struct PersonaDetailView: View {
 	@State private var isLoading: Bool = true
 	@State private var errorMessage: String?
 	
+	@AppStorage var customContext: String
+	@State private var isEditingContext: Bool = false
+	
 	// Fetch all interactions for the specific person
 	@FetchRequest var interactions: FetchedResults<Interaction>
 	
 	init(personName: String) {
 		self.personName = personName
+		self._customContext = AppStorage(wrappedValue: "", "personal_context_\(personName)")
 		_interactions = FetchRequest<Interaction>(
 			entity: Interaction.entity(),
 			sortDescriptors: [NSSortDescriptor(keyPath: \Interaction.timestamp, ascending: false)],
@@ -99,6 +103,49 @@ struct PersonaDetailView: View {
 										.foregroundColor(themeManager.color("SecondaryText"))
 								}
 							}
+							// MARK: - Context & Correction Injection
+							VStack(alignment: .leading, spacing: 12) {
+								HStack {
+									Image(systemName: "pencil.and.outline")
+										.foregroundColor(themeManager.color("AccentColor"))
+									Text("AI Context & Corrections")
+										.font(.headline)
+										.foregroundColor(themeManager.color("PrimaryText"))
+									Spacer()
+									Button(isEditingContext ? "Save & Analyze" : "Edit") {
+										if isEditingContext {
+											generateAnalysis(forRefresh: true)
+										}
+										withAnimation {
+											isEditingContext.toggle()
+										}
+									}
+									.font(.subheadline)
+									.foregroundColor(themeManager.color("AccentColor"))
+								}
+								
+								if isEditingContext {
+									TextEditor(text: $customContext)
+										.frame(minHeight: 100)
+										.padding(8)
+										.background(Color.black.opacity(0.1))
+										.cornerRadius(8)
+										.foregroundColor(themeManager.color("PrimaryText"))
+										.overlay(
+											RoundedRectangle(cornerRadius: 8)
+												.stroke(themeManager.color("AccentColor").opacity(0.3), lineWidth: 1)
+										)
+								} else if !customContext.isEmpty {
+									Text(customContext)
+										.font(.subheadline)
+										.foregroundColor(themeManager.color("SecondaryText"))
+								} else {
+									Text("Add context to help us provide a more accurate analysis.")
+										.font(.subheadline)
+										.foregroundColor(themeManager.color("SecondaryText"))
+										.italic()
+								}
+							}
 						}
 						.padding()
 						.frame(maxWidth: .infinity, alignment: .leading)
@@ -142,8 +189,8 @@ struct PersonaDetailView: View {
 		}
 	}
 	
-	private func generateAnalysis() {
-		guard analysis == nil else { return }
+	private func generateAnalysis(forceRefresh: Bool = false) {
+		guard analysis == nil || forceRefresh else { return }
 		isLoading = true
 		errorMessage = nil
 		
@@ -160,9 +207,21 @@ struct PersonaDetailView: View {
 		Task {
 			do {
 				// Calls on-device FoundationModels Framework
-				if let response = try await AIInsightService.generatePersonaAnalysis(for: personName, contextString: contextString) {
+				if let response = try await AIInsightService.generatePersonaAnalysis(for: personName, contextString: contextString, userCorrections: customContext) {
 					
-					var cleanedResponse = response
+					var cleanedResponse = response.trimmingCharacters(in: .whitespacesAndNewlines)
+					
+					// Markdown Stripping
+					if cleanedResponse.hasPrefix("```json") {
+						cleanedResponse.removeFirst(7)
+					} else if cleanedResponse.hasPrefix("```") {
+						cleanedResponse.removeFirst(3)
+					}
+					if cleanedResponse.hasSuffix("```") {
+						cleanedResponse.removeLast(3)
+					}
+					
+					// JSON Extraction
 					if let startIndex = cleanedResponse.firstIndex(of:"{"),
 					   let endIndex = cleanedResponse.lastIndex(of: "}") {
 						cleanedResponse = String(cleanedResponse[startIndex...endIndex])
