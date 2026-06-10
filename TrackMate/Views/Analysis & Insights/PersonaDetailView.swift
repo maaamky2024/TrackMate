@@ -114,7 +114,7 @@ struct PersonaDetailView: View {
 									Spacer()
 									Button(isEditingContext ? "Save & Analyze" : "Edit") {
 										if isEditingContext {
-											generateAnalysis(forRefresh: true)
+											generateAnalysis(forceRefresh: true)
 										}
 										withAnimation {
 											isEditingContext.toggle()

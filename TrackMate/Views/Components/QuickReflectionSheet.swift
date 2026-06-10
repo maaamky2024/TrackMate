@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct QuickReflectionSheet: View {
 	var parentInteraction: Interaction
