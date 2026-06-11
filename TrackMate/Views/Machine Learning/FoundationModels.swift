@@ -45,23 +45,32 @@ struct AIInsightService {
     }
 	
 	// Generates a structured JSON analysis for the detailed Persona view
-	static func generatePersonaAnalysis(for person: String, contextString: String, userCorrections: String = "") async throws -> String? {
+	static func generatePersonaAnalysis(
+		for person: String,
+		contextString: String,
+		userCorrections: String = "",
+		baselineSummary: String
+	) async throws -> String? {
 		let model = SystemLanguageModel.default
 		guard model.isAvailable else { return nil }
 		
 		let session = LanguageModelSession()
 		
 		let prompt = """
-   Analyze these interactions with \(person):
-   \(contextString)
+   Analyze these behavioral interactions with \(person).
    
-   \(userCorrections.isEmpty ? "" : "USER PROVIDED CONTEXT & CORRECTIONS (CRITICAL: Override or adjust the analysis based on this context): \(userCorrections)")
+   CRITICAL DATA BASELINE (Calculated from mathematical interaction trends): \(baselineSummary)
+   
+   \(userCorrections.isEmpty ? "" : "USER DIRECTIVES (Consider the additional context(s) when analyzing patterns): \(userCorrections)")
+   
+   RAW LOG DATA TO PARSE:
+   \(contextString)
    
    Respond with ONLY a raw JSON onject (no markdown formatting, no backticks) matching this structure exactly:
    { 
-   "summary": "A balanced summary of the relationship based on both positive and negative interactions.",
-   "greenFlags": ["List of green flags. ONLY extract green flags from interactions marked 'Overall Experience: Positive'. Explain why using the emotion tags and notes.", "..."],
-   "redFlags": ["List of red flags. Can be extractedfrom any interaction (even positive ones if there is evidence of love bombing, manipulation, trauma bonding, etc.).", "..."]
+   "summary": "Provide an assessment of the relationship architecture, explicitly referencing whether specific behavior logs match or diverge from the established baseline metrics.",
+   "greenFlags": ["List of objective green flags. ONLY extract green flags from positive interactions. Link them explicitly to emotional consistency."],
+   "redFlags": ["List of critical red flags. Evaluate logs against love-bombing, manipulation, or trauma-bonding patterns if the baseline data shows high volatility."]
    }
    """
 		

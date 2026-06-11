@@ -194,6 +194,7 @@ struct PersonaDetailView: View {
 		isLoading = true
 		errorMessage = nil
 		
+		// 1. compile raw text logs
 		var contextString = ""
 		for interaction in interactions {
 			let date = interaction.timestamp?.formatted(date: .abbreviated, time: .omitted) ?? "Unknown Date"
@@ -204,10 +205,22 @@ struct PersonaDetailView: View {
 			contextString += "Date: \(date)\nOverall Experience: \(overall)\nEmotions: \(emotions)\nNotes: \(notes)\n---\n"
 		}
 		
+		// 2. compute dunmaic analytical baseline
+		let baseline = PersonaAnalyticsService.calculateBaseline(for: personName, in: viewContext)
+		let baselineSummary = """
+			- Total Recorded Events: \(baseline.totalInteractions)
+			- Negative Interaction Density: \(String(format: "%.1f%%", baseline.negativeRatio * 100))
+			- Highest Frequency Emotional States: \(baseline.dominantEmotions.joined(separator: ", "))
+			- Trend Volatility Profile: \(baseline.volatilityScore)
+			"""
+		
+		// 3. fire ai execution pipeline
 		Task {
 			do {
-				// Calls on-device FoundationModels Framework
-				if let response = try await AIInsightService.generatePersonaAnalysis(for: personName, contextString: contextString, userCorrections: customContext) {
+				// Calls FoundationModels
+				if let response = try await AIInsightService.generatePersonaAnalysis(for: personName, contextString: contextString, userCorrections: customContext,
+					baselineSummary: baselineSummary
+				) {
 					
 					var cleanedResponse = response.trimmingCharacters(in: .whitespacesAndNewlines)
 					
