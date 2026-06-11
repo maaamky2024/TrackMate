@@ -16,9 +16,9 @@ struct PersonaBaseline {
 }
 
 class PersonaAnalyticsService {
-	static func calculateBaseline(for personname: String, in context: NSManagedObjectContext) -> PersonaBaseline {
-		let request: NSFetchRequest<Interaction> = Interaction.entity() as! NSFetchRequest<Interaction>
-		request.predicate = NSPredicate(format: "personName == %@, personName")
+	static func calculateBaseline(for personName: String, in context: NSManagedObjectContext) -> PersonaBaseline {
+		let request: NSFetchRequest<Interaction> = Interaction.fetchRequest()
+		request.predicate = NSPredicate(format: "personName == %@", personName)
 		request.sortDescriptors = [NSSortDescriptor(keyPath: \Interaction.timestamp, ascending: true)]
 		
 		guard let interactions = try? context.fetch(request), !interactions.isEmpty else {
