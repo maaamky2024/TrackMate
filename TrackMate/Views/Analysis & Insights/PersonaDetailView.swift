@@ -128,7 +128,7 @@ struct PersonaDetailView: View {
 									TextEditor(text: $customContext)
 										.frame(minHeight: 100)
 										.padding(8)
-										.background(Color.black.opacity(0.1))
+										.background(themeManager.color("PrimaryText").opacity(0.05))
 										.cornerRadius(8)
 										.foregroundColor(themeManager.color("PrimaryText"))
 										.overlay(

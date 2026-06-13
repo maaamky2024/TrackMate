@@ -20,27 +20,8 @@ struct AnalysisView: View {
 	   sortDescriptors: [NSSortDescriptor(keyPath: \Interaction.timestamp, ascending: false)]
     ) private var allInteractions: FetchedResults<Interaction>
     
-    // Gets all interactions not flagged as inconclusive
-    var individualFlags: [Interaction] {
-	   allInteractions.filter {
-		  let flag = $0.detectedRedFlag ?? ""
-		  return !flag.isEmpty && flag != "Inconclusive" && flag != "Neutral"
-	   }
-    }
-    
-    // Dynamically grabs unique names so you don't get duplicates in your HStack
-    var uniquePeople: [String] {
-	   let names = allInteractions.compactMap { $0.personName }
-	   var uniqueNames = [String]()
-	   var set = Set<String>()
-	   for name in names {
-		  if !set.contains(name) {
-			 uniqueNames.append(name)
-			 set.insert(name)
-		  }
-	   }
-	   return uniqueNames.sorted()
-    }
+	@State private var individualFlags: [Interaction] = []
+	@State private var uniquePeople: [String] = []
     
     var body: some View {
 	   NavigationStack {
@@ -212,6 +193,26 @@ struct AnalysisView: View {
 				}
 			 }
 			 .padding(.bottom, 30)
+			 .onChange(of: allInteractions.count, initial: true) { _, _ in
+				 // Cache flags
+				 let flags = allInteractions.filter {
+					 let flag = $0.detectedRedFlag ?? ""
+					 return !flag.isEmpty && flag != "Inconclusive" && flag != "Neutral"
+				 }
+				 self.individualFlags = flags
+				 
+				 // Cache unique people
+				 let names = allInteractions.compactMap { $0.personName }
+				 var uniqueNames = [String]()
+				 var set = Set<String>()
+				 for name in names {
+					 if !set.contains(name) {
+						 uniqueNames.append(name)
+						 set.insert(name)
+					 }
+				 }
+				 self.uniquePeople = uniqueNames.sorted()
+			 }
 			 .task(id: allInteractions.count) {
 				 isAnalyzing = true
 				 currentReport = await PatternInsightService.generateReport(from: Array(allInteractions))

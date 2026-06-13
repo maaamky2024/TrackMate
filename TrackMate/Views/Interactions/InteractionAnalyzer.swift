@@ -66,18 +66,26 @@ class InteractionAnalyzer: InteractionAnalyzerProtocol {
     
     // Helper function pulled from your old RedFlagMatcher
     private func fetchExplanation(for category: String, context: NSManagedObjectContext) -> String {
-	   let fetchRequest: NSFetchRequest<RedFlags> = RedFlags.fetchRequest()
+	    let fetchRequest: NSFetchRequest<RedFlags> = NSFetchRequest(entityName: "RedFlags")
 	   fetchRequest.predicate = NSPredicate(format: "category == %@", category)
 	   fetchRequest.fetchLimit = 1
-	   
-	   do {
-		  if let flag = try context.fetch(fetchRequest).first,
-			let description = flag.redflagDescription {
-			 return "Pattern detected: \(description)"
-		  }
-	   } catch {
-		  print("Failed to fetch red flag explanation.")
-	   }
+	    
+	    var fetchedDescription: String? = nil
+	    
+	    context.performAndWait {
+		    do {
+			    if let flag = try context.fetch(fetchRequest).first,
+				  let description = flag.redflagDescription {
+				    return fetchedDescription = description
+			    }
+		    } catch {
+			    print("Failed to fetch red flag explanation: \(error)")
+		    }
+	    }
+	    
+	    if let description = fetchedDescription {
+		    return "Pattern detected: \(description)."
+	    }
 	   
 	   return "The model detected text patterns associated with \(category)."
     }
