@@ -110,7 +110,7 @@ struct PersonaDetailView: View {
 										Button(action: {
 											deletePattern(pattern)
 										}) {
-											Image(systemName: trash)
+											Image(systemName: "trash")
 												.foregroundColor(themeManager.color("AccentColor"))
 										}
 										.padding(.leading, 8)

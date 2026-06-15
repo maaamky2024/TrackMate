@@ -24,18 +24,19 @@ struct AIInsightService {
         
         // Prompt for automated pattern detection
         let prompt = """
-            You are an assistant for a personal reflection app. Below are notes written by the USER about their interactions with a person named \(person).
-            
-            NOTES: \(combinedNotes)
-            
-            TASK:
-            In one to three sentences, summarize how \(person)'s behavior affects the USER.
-            
-            STRICT RULES:
-            1. Always refer to the author of the notes as "you".
-            2. Never attribute the user's felings (like anxiety or confusion) to \(person).
-            3. Example of correct format: "Interactions with \(person) often leave you feeling anxious due to their unpredictable schedule."
-            """
+
+	 You are an assistant for a personal reflection app. Below are notes written by the USER about their interactions with a person named \(person).
+	 NOTES: \(combinedNotes)
+	 
+	 TASK:
+	 1. In one to three sentences, summarize how \(person)'s behavior affects the USER.
+	 2. In one to three sentences, summarize how the USER's behavior may have affected \(person).
+	 3. Make a suggestion on what the USER should do to improve the situation.
+	 4. Rate your confidence on your accuracy, ranging from 0% to 100%, where 0% is not at all confident and 100% is extremely confident.
+	 STRICT RULES:
+	 1. Always refer to the author of the notes as "you".
+	 2. Always refer to the USER as "you".
+	"""
         do {
             let response = try await session.respond(to: prompt)
             return response.content
@@ -61,14 +62,14 @@ struct AIInsightService {
    
    CRITICAL DATA BASELINE (Calculated from mathematical interaction trends): \(baselineSummary)
    
-   \(userCorrections.isEmpty ? "" : "USER DIRECTIVES (Consider the additional context(s) when analyzing patterns): \(userCorrections)")
+   \(userCorrections.isEmpty ? "" : "USER DIRECTIVES (Consider the additional context(s), which were provided by the USER, when analyzing patterns): \(userCorrections)")
    
    RAW LOG DATA TO PARSE:
    \(contextString)
    
    Respond with ONLY a raw JSON onject (no markdown formatting, no backticks) matching this structure exactly:
    { 
-   "summary": "Provide an assessment of the relationship architecture, explicitly referencing whether specific behavior logs match or diverge from the established baseline metrics.",
+   "summary": "Provide an assessment of the overall health of the relationship, explicitly referencing specific behavior logs when explaining the reason for how you assessed the overall health of the relationship.",
    "greenFlags": ["List of objective green flags. ONLY extract green flags from positive interactions. Link them explicitly to emotional consistency."],
    "redFlags": ["List of critical red flags. Evaluate logs against love-bombing, manipulation, or trauma-bonding patterns if the baseline data shows high volatility."]
    }
@@ -93,11 +94,11 @@ struct AIInsightService {
 		let prompt = """
 					You are a neutral communication analyzer for a personal reflection app. Analyze the following text written by a user reflecting on an interpersonal interaction.
 					Classify the tone of the user's text into EXACTLY ONE of the follwing categories:
-					- Reflective (They are taking a step back, looking at the big picture, or acknowledging multiple sides)
-					- Neutral (Just stating the facts, no strong emotion)
-					- Defensive (Protecting themselves, justifying behavior, or shifting blame off of themself)
-					- Escalated (Highly aggressive, attacking the other person, or using extreme language)
-					- Frustrated (Annoyed or venting, but not necessarily aggressive)
+					- Reflective (They are taking a step back, looking at the big picture, or acknowledging both sides.)
+					- Neutral (Just stating the facts with no strong emotion.)
+					- Defensive (Protecting themselves, justifying their behavior, or shifting the blame off of themself.)
+					- Escalated (Highly aggressive, attacking the other person, or using extreme language.)
+					- Frustrated (Annoyed or venting, but not necessarily aggressive.)
 					TEXT: "\(text)"
 					Respond with ONLY the exact category name. Do not add any punctuation, markdown, or explanation.
 			"""
@@ -130,8 +131,8 @@ struct AIInsightService {
 					\(formattedLogs)
 					TASK:
 					1. Write a 1 to 2 sentence explanation addressing why these interactions form a pattern of \(tactic). Focus on the conversational or emotional shift.
-					2. Summarize the relevant evidence from each log in a single, bulleted sentence.
-					Respond ONLY with the synthesized explanation followed by the bullet points. Do not include introductory text.
+					2. Limit your response to exactly 1 or 2 sentences summarizing why this pattern was detected. Focus on the conversational or emotional shift. 
+					3. Do not include any bullet points, formatting, or introductory text. Respond ONLY with the 1 to 2 sentence summary.
 			"""
 		do {
 			let response = try await session.respond(to: prompt)

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import CoreData
 
 class PatternInsightService {
 	static func generateReport(from interactions: [Interaction], context: NSManagedObjectContext) async -> PatternReport? {
@@ -36,6 +37,9 @@ class PatternInsightService {
 		
 		let matchedResource = fetchResource(for: topTactic)
 		let sortedDates = tacticInteractions.compactMap { $0.timestamp }.sorted()
+		// 1. Check CD before calling AI
+		let fetchRequest = NSFetchRequest<DetectedPattern>(entityName: "DetectedPattern")
+		fetchRequest.predicate = NSPredicate(format: "personName == %@ AND flagType == %@", topOffender, topTactic)
 		
 		if let existingPattern = try? context.fetch(fetchRequest).first {
 			if existingPattern.status == "dismissed" {
@@ -54,8 +58,10 @@ class PatternInsightService {
 			)
 		}
 		
+		// 2. If it's new, call AI
 		let synthesis = try? await AIInsightService.generatePatternSynthesis(for: topOffender, tactic: topTactic, interactions: tacticInteractions)
 		
+		// 3. Save to core data as pending
 		await MainActor.run {
 			let newPattern = DetectedPattern(context: context)
 			newPattern.id = UUID()
