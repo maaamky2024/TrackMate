@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24901" systemVersion="25G5028f" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="25185.6" systemVersion="26A5353q" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="ContextNote" representedClassName="ContextNote" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timeStamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="tonalMarker" optional="YES" attributeType="String"/>
         <relationship name="interaction" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Interaction" inverseName="contextNotes" inverseEntity="Interaction"/>
+    </entity>
+    <entity name="DetectedPattern" representedClassName="DetectedPattern" syncable="YES" codeGenerationType="class">
+        <attribute name="dateDetected" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="flagType" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
     <entity name="Interaction" representedClassName="Interaction" syncable="YES" codeGenerationType="class">
         <attribute name="detectedRedFlag" optional="YES" attributeType="String"/>
