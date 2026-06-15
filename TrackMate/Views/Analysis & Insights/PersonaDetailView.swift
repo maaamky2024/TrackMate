@@ -29,6 +29,9 @@ struct PersonaDetailView: View {
 	// Fetch all interactions for the specific person
 	@FetchRequest var interactions: FetchedResults<Interaction>
 	
+	// Fetch only saved patterns for the person
+	@FetchRequest var savedPatterns: FetchedResults<DetectedPattern>
+	
 	init(personName: String) {
 		self.personName = personName
 		self._customContext = AppStorage(wrappedValue: "", "personal_context_\(personName)")
@@ -36,6 +39,11 @@ struct PersonaDetailView: View {
 			entity: Interaction.entity(),
 			sortDescriptors: [NSSortDescriptor(keyPath: \Interaction.timestamp, ascending: false)],
 			predicate: NSPredicate(format: "personName == %@", personName)
+		)
+		_savedPatterns = FetchRequest<DetectedPattern>(
+			entity: DetectedPattern.entity(),
+			sortDescriptors: [NSSortDescriptor(keyPath: \DetectedPattern.dateDetected, ascending: false)],
+			predicate: NSPredicate(format: "personName == %@ AND status == %@", personName, "saved")
 		)
 	}
 	
@@ -80,6 +88,48 @@ struct PersonaDetailView: View {
 					.frame(maxWidth: .infinity, alignment: .leading)
 					.background(themeManager.color("CardFill"))
 					.cornerRadius(16)
+					
+					// MARK: - Saved behavioral patterns
+					if !savedPatterns.isEmpty {
+						VStack(alignment: .leading, spacing: 12) {
+							Text("Saved Behavioral Patterns")
+								.font(.title2).bold()
+								.foregroundColor(themeManager.color("PrimaryText"))
+							
+							ForEach(savedPatterns, id: \.id) { pattern in
+								VStack(alignment: .leading, spacing: 8) {
+									HStack {
+										Image(systemName: "exclamationmark.shield.fill")
+											.foregroundColor(themeManager.color("AccentColor"))
+										Text(pattern.flagType ?? "Unknown")
+											.font(.headline)
+											.foregroundColor(themeManager.color("PrimaryText"))
+										
+										Spacer()
+										
+										Button(action: {
+											deletePattern(pattern)
+										}) {
+											Image(systemName: trash)
+												.foregroundColor(themeManager.color("AccentColor"))
+										}
+										.padding(.leading, 8)
+									}
+									
+									Text(pattern.summary ?? "")
+										.font(.subheadline)
+										.foregroundColor(themeManager.color("SecondaryText"))
+								}
+								.padding()
+								.background(themeManager.color("PrimaryText").opacity(0.05))
+								.cornerRadius(12)
+							}
+						}
+						.padding()
+						.frame(maxWidth: .infinity, alignment: .leading)
+						.background(themeManager.color("CardFill"))
+						.cornerRadius(16)
+					}
 					
 					// MARK: - Flag side-by-side
 					HStack(alignment: .top, spacing: 16) {
@@ -186,6 +236,13 @@ struct PersonaDetailView: View {
 		.navigationBarTitleDisplayMode(.inline)
 		.onAppear {
 			generateAnalysis()
+		}
+	}
+	
+	private func deletePattern(_ pattern: DetectedPattern) {
+		withAnimation {
+			viewContext.delete(pattern)
+			try? viewContext.save()
 		}
 	}
 	

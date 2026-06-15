@@ -51,6 +51,35 @@ struct AnalysisView: View {
 								.padding(.horizontal)
 						} else if let report = currentReport {
 					   AutomatedInsightCard(report: report)
+							
+							// Action buttons for pending patterns
+							HStack(spacing: 20) {
+								Button(action: {
+									updatePatternStatus(person: report.offenderName, tactic: report.primaryTactic, newStatus: "saved")
+									currentReport = nil
+								}) {
+									Text("Save to Profile")
+										.bold()
+										.frame(maxWidth: .infinity)
+										.padding()
+										.background(themeManager.color("AccentColor").opacity(0.15))
+										.foregroundColor(themeManager.color("PrimaryText"))
+										.cornerRadius(10)
+								}
+								
+								Button(action: {
+									updatePatternStatus(person: report.offenderName, tactic: report.primaryTactic, newStatus: "dismissed")
+									currentReport = nil
+								}) {
+									Text("Dismiss")
+										.bold()
+										.frame(maxWidth: .infinity)
+										.padding()
+										.background(Color.gray.opacity(0.15))
+										.foregroundColor(themeManager.color("SecondaryText"))
+										.cornerRadius(10)
+								}
+							}
 						  .padding(.horizontal)
 				    } else {
 					   VStack(spacing: 12) {
@@ -194,14 +223,12 @@ struct AnalysisView: View {
 			 }
 			 .padding(.bottom, 30)
 			 .onChange(of: allInteractions.count, initial: true) { _, _ in
-				 // Cache flags
 				 let flags = allInteractions.filter {
 					 let flag = $0.detectedRedFlag ?? ""
 					 return !flag.isEmpty && flag != "Inconclusive" && flag != "Neutral"
 				 }
 				 self.individualFlags = flags
 				 
-				 // Cache unique people
 				 let names = allInteractions.compactMap { $0.personName }
 				 var uniqueNames = [String]()
 				 var set = Set<String>()
@@ -215,7 +242,7 @@ struct AnalysisView: View {
 			 }
 			 .task(id: allInteractions.count) {
 				 isAnalyzing = true
-				 currentReport = await PatternInsightService.generateReport(from: Array(allInteractions))
+				 currentReport = await PatternInsightService.generateReport(from: Array(allInteractions), context: viewContext)
 				 isAnalyzing = false
 			 }
 		  }
@@ -223,6 +250,17 @@ struct AnalysisView: View {
 		  .navigationTitle("Analysis")
 	   }
     }
+	
+	// Updates Core Data when user saves or dismisses
+	private func updatePatternStatus(person: String, tactic: String, newStatus: String) {
+		let request: NSFetchRequest<DetectedPattern> = DetectedPattern.fetchRequest()
+		request.predicate = NSPredicate(format: "personName == %@ AND flagType == %@", person, tactic)
+		
+		if let existing = try? viewContext.fetch(request).first {
+			existing.status = newStatus
+			try? viewContext.save()
+		}
+	}
     
     struct StatBox: View {
 	   let title: String

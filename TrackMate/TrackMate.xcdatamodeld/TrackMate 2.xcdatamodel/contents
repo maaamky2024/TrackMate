@@ -11,6 +11,9 @@
         <attribute name="dateDetected" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="flagType" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="personName" optional="YES" attributeType="String"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="summary" optional="YES" attributeType="String"/>
     </entity>
     <entity name="Interaction" representedClassName="Interaction" syncable="YES" codeGenerationType="class">
         <attribute name="detectedRedFlag" optional="YES" attributeType="String"/>
