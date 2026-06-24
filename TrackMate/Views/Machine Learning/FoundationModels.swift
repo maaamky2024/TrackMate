@@ -10,40 +10,40 @@ import Foundation
 import CoreData
 
 struct AIInsightService {
-    
-    // Automatically generates a summary based on history for a specific person.
-    static func generateSummary(for person: String, notes: [String]) async throws -> String? {
-        
-        // Verify availability on users device
-        let model = SystemLanguageModel.default
-        guard model.isAvailable, !notes.isEmpty else { return nil }
-        
-        // Model session
-        let session = LanguageModelSession()
-        let combinedNotes = notes.joined(separator: " | ")
-        
-        // Prompt for automated pattern detection
-        let prompt = """
-
-	 You are an assistant for a personal reflection app. Below are notes written by the USER about their interactions with a person named \(person).
-	 NOTES: \(combinedNotes)
-	 
-	 TASK:
-	 1. In one to three sentences, summarize how \(person)'s behavior affects the USER.
-	 2. In one to three sentences, summarize how the USER's behavior may have affected \(person).
-	 3. Make a suggestion on what the USER should do to improve the situation.
-	 4. Rate your confidence on your accuracy, ranging from 0% to 100%, where 0% is not at all confident and 100% is extremely confident.
-	 STRICT RULES:
-	 1. Always refer to the author of the notes as "you".
-	 2. Always refer to the USER as "you".
-	"""
-        do {
-            let response = try await session.respond(to: prompt)
-            return response.content
-        } catch {
-            return nil
-        }
-    }
+	
+	// Automatically generates a summary based on history for a specific person.
+	static func generateSummary(for person: String, notes: [String]) async throws -> String? {
+		
+		// Verify availability on users device
+		let model = SystemLanguageModel.default
+		guard model.isAvailable, !notes.isEmpty else { return nil }
+		
+		// Model session
+		let session = LanguageModelSession()
+		let combinedNotes = notes.joined(separator: " | ")
+		
+		// Prompt for automated pattern detection
+		let prompt = """
+ 
+  You are an assistant for a personal reflection app. Below are notes written by the USER about their interactions with a person named \(person).
+  NOTES: \(combinedNotes)
+  
+  TASK:
+  1. In one to three sentences, summarize how \(person)'s behavior affects the USER.
+  2. In one to three sentences, summarize how the USER's behavior may have affected \(person).
+  3. Make a suggestion on what the USER should do to improve the situation.
+  4. Rate your confidence on your accuracy, ranging from 0% to 100%, where 0% is not at all confident and 100% is extremely confident.
+  STRICT RULES:
+  1. Always refer to the author of the notes as "you".
+  2. Always refer to the USER as "you".
+ """
+		do {
+			let response = try await session.respond(to: prompt)
+			return response.content
+		} catch {
+			return nil
+		}
+	}
 	
 	// Generates a structured JSON analysis for the detailed Persona view
 	static func generatePersonaAnalysis(
@@ -92,16 +92,16 @@ struct AIInsightService {
 		let session = LanguageModelSession()
 		
 		let prompt = """
-					You are a neutral communication analyzer for a personal reflection app. Analyze the following text written by a user reflecting on an interpersonal interaction.
-					Classify the tone of the user's text into EXACTLY ONE of the follwing categories:
-					- Reflective (They are taking a step back, looking at the big picture, or acknowledging both sides.)
-					- Neutral (Just stating the facts with no strong emotion.)
-					- Defensive (Protecting themselves, justifying their behavior, or shifting the blame off of themself.)
-					- Escalated (Highly aggressive, attacking the other person, or using extreme language.)
-					- Frustrated (Annoyed or venting, but not necessarily aggressive.)
-					TEXT: "\(text)"
-					Respond with ONLY the exact category name. Do not add any punctuation, markdown, or explanation.
-			"""
+   You are a neutral communication analyzer for a personal reflection app. Analyze the following text written by a user reflecting on an interpersonal interaction.
+   Classify the tone of the user's text into EXACTLY ONE of the follwing categories:
+   - Reflective (They are taking a step back, looking at the big picture, or acknowledging both sides.)
+   - Neutral (Just stating the facts with no strong emotion.)
+   - Defensive (Protecting themselves, justifying their behavior, or shifting the blame off of themself.)
+   - Escalated (Highly aggressive, attacking the other person, or using extreme language.)
+   - Frustrated (Annoyed or venting, but not necessarily aggressive.)
+   TEXT: "\(text)"
+   Respond with ONLY the exact category name. Do not add any punctuation, markdown, or explanation.
+   """
 		
 		do {
 			let response = try await session.respond(to: prompt)
@@ -126,20 +126,42 @@ struct AIInsightService {
 		}.joined(separator: "\n")
 		
 		let prompt = """
-					You are a behavioral pattern analyzer for a personal reflection app. Review the following interaction logs between the user and \(person), which have been flagged for the behavior: \(tactic).
-					LOGS:
-					\(formattedLogs)
-					TASK:
-					1. Write a 1 to 2 sentence explanation addressing why these interactions form a pattern of \(tactic). Focus on the conversational or emotional shift.
-					2. Limit your response to exactly 1 or 2 sentences summarizing why this pattern was detected. Focus on the conversational or emotional shift. 
-					3. Do not include any bullet points, formatting, or introductory text. Respond ONLY with the 1 to 2 sentence summary.
-			"""
+   You are a behavioral pattern analyzer for a personal reflection app. Review the following interaction logs between the user and \(person), which have been flagged for the behavior: \(tactic).
+   LOGS:
+   \(formattedLogs)
+   TASK:
+   1. Write a 1 to 2 sentence explanation addressing why these interactions form a pattern of \(tactic). Focus on the conversational or emotional shift.
+   2. Limit your response to exactly 1 or 2 sentences summarizing why this pattern was detected. Focus on the conversational or emotional shift. 
+   3. Do not include any bullet points, formatting, or introductory text. Respond ONLY with the 1 to 2 sentence summary.
+   """
 		do {
 			let response = try await session.respond(to: prompt)
 			return response.content.trimmingCharacters(in: .whitespacesAndNewlines)
 		} catch {
 			print("Pattern Synthesis failed: \(error.localizedDescription)")
 			return nil
+		}
+	}
+	
+	static func generateFlagExplanation(category: String, text: String) async throws -> String {
+		let model = SystemLanguageModel.default
+		guard model.isAvailable else {
+			return "The model detected text patterns associated with \(category)."
+		}
+		let session = LanguageModelSession()
+		
+		let prompt = """
+   A relationship interaction was just flagged for the behavioral category: "\(category)".
+   Here are the user's notes and feelings from the interaction:
+   "\(text)"
+   Write a short, empathetic, human-like sentence or two stating exactly why this specific interaction is a red flag for "\(category)". Do not just define the term. Explain the connection between the user's notes and the flag. Speak directly to the user in the second person (e.g. "The way tehy dismissed your feelings..."). Keep it concise.
+   """
+		do {
+			let response = try await session.respond(to: prompt)
+			return response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+		} catch {
+			print("Flag explanation generation failed: \(error.localizedDescription)")
+			return "The model detected text patterns associated with \(category)."
 		}
 	}
 }

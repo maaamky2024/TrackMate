@@ -28,7 +28,7 @@ class InteractionAnalyzer: InteractionAnalyzerProtocol {
 	   let userNotes = interaction.notes ?? ""
 	   let emotions = (interaction.emotionTags as? [String])?.joined(separator: ", ") ?? "none"
 	   let respectStr = interaction.didFeelRespected == "NO" ? "I did not feel respected." : "I felt respected."
-	   let safeStr = interaction.didFeelEmotionallySafe == "NO" ? "I felt emotionally unsafe." : "I felt save."
+	   let safeStr = interaction.didFeelEmotionallySafe == "NO" ? "I felt emotionally unsafe." : "I felt safe."
 	   
 	   let textToAnalyze = "\(userNotes) \(respectStr) \(safeStr) My emotions were: \(emotions)."
 	   
@@ -58,10 +58,16 @@ class InteractionAnalyzer: InteractionAnalyzerProtocol {
 	   }
 	   
 	   // 7. If it passes the filter, finalize the match by grabbing the description
-	   let detailedReason = fetchExplanation(for: category, context: context)
-	   results.append(RedFlagMatch(category: category, reason: detailedReason))
-	   
-	   return results
+	   var detailedReason = ""
+	    if let aiReason = try? await AIInsightService.generateFlagExplanation(category: category, text: textToAnalyze) {
+		    detailedReason = aiReason
+	    } else {
+		    detailedReason = fetchExplanation(for: category, context: context)
+	    }
+	    
+	    results.append(RedFlagMatch(category: category, reason: detailedReason))
+	    
+	    return results
     }
     
     // Helper function pulled from your old RedFlagMatcher

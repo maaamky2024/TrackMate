@@ -20,48 +20,68 @@ class PatternInsightService {
 		
 		guard flaggedInteractions.count > 2 else { return nil }
 		
-		let nameCounts = Dictionary(grouping: flaggedInteractions, by: { $0.personName ?? "Unknown" })
-			.mapValues { $0.count }
-		guard let topOffender = nameCounts.max(by: { $0.value < $1.value })?.key else  { return nil }
+		let fetchRequest = NSFetchRequest<DetectedPattern>(entityName: "DetectedPattern")
+		let allDetected = (try? context.fetch(fetchRequest)) ?? []
 		
-		let offenderInteractions = flaggedInteractions.filter { $0.personName == topOffender }
-		let tacticCounts = Dictionary(grouping: offenderInteractions, by: { $0.detectedRedFlag ?? "Unknown" })
-			.mapValues { $0.count }
-		guard let topTactic = tacticCounts.max(by: { $0.value < $1.value })?.key else { return nil }
-		let tacticCount = tacticCounts[topTactic] ?? 0
+		let ignoredSignatures = Set(
+			allDetected
+				.filter { $0.status == "saved" || $0.status == "dismissed" }
+				.map { "\($0.personName ?? "")-\($0.flagType ?? "")" }
+		)
 		
-		let tacticInteractions = offenderInteractions.filter { $0.detectedRedFlag == topTactic }
-		let mediumCounts = Dictionary(grouping: tacticInteractions, by: { $0.interactionType  ?? "Unknown" })
+		var bestCandidate: (person: String, tactic: String, interaction: [Interaction])? = nil
+		var highestCount = 0
+		
+		let interactionsByPerson = Dictionary(grouping: flaggedInteractions, by: { $0.personName ?? "Unknown" })
+		
+		for (person, personInteractions) in interactionsByPerson {
+			let interactionsByTactic = Dictionary(grouping: personInteractions, by: { $0.detectedRedFlag ?? "Unknown" })
+			
+			for (tactic, tacticInteractions) in interactionsByTactic {
+				let count = tacticInteractions.count
+				
+				if count > 2 {
+					let signature = "\(person)-\(tactic)"
+					
+					if !ignoredSignatures.contains(signature) {
+						if count > highestCount {
+							highestCount = count
+							bestCandidate = (person, tactic, tacticInteractions)
+						}
+					}
+				}
+			}
+		}
+		
+		guard let candidate = bestCandidate else { return nil }
+		
+		let (topOffender, topTactic, tacticInteractions) = candidate
+		let tacticCount = tacticInteractions.count
+		
+		let mediumCounts = Dictionary(grouping: tacticInteractions, by: { $0.interactionType ?? "Unknown" })
 			.mapValues { $0.count }
-		let topMedium = mediumCounts.max(by: { $0.value < $1.value})?.key ?? "interactions"
+		
+		let topMedium = mediumCounts.max(by: { $0.value < $1.value })?.key ?? "interactions"
 		
 		let matchedResource = fetchResource(for: topTactic)
 		let sortedDates = tacticInteractions.compactMap { $0.timestamp }.sorted()
-		// 1. Check CD before calling AI
-		let fetchRequest = NSFetchRequest<DetectedPattern>(entityName: "DetectedPattern")
-		fetchRequest.predicate = NSPredicate(format: "personName == %@ AND flagType == %@", topOffender, topTactic)
 		
-		if let existingPattern = try? context.fetch(fetchRequest).first {
-			if existingPattern.status == "dismissed" {
-				return nil
-			}
+		if let existingPending = allDetected.first(where: { $0.personName == topOffender && $0.flagType == topTactic && $0.status == "pending" }) {
 			
 			return PatternReport(
 				offenderName: topOffender,
 				primaryTactic: topTactic,
 				primaryMedium: topMedium,
 				incidentCount: tacticCount,
-				dynamicSynthesis: existingPattern.summary,
+				dynamicSynthesis: existingPending.summary,
 				suggestedResource: matchedResource,
 				firstIncidentDate: sortedDates.first,
 				lastIncidentDate: sortedDates.last
 			)
 		}
 		
-		// 2. If it's new, call AI
 		let synthesis = try? await AIInsightService.generatePatternSynthesis(for: topOffender, tactic: topTactic, interactions: tacticInteractions)
 		
-		// 3. Save to core data as pending
 		await MainActor.run {
 			let newPattern = DetectedPattern(context: context)
 			newPattern.id = UUID()
