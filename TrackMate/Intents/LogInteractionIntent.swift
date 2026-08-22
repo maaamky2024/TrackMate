@@ -10,7 +10,7 @@ import AppIntents
 import CoreData
 
 struct LogInteractionIntent: AppIntent {
-    static var title: LocalizedStringResource = "Log TrackMate Interaction"
+    static var title: LocalizedStringResource = "TrackMate Interaction"
     static var description: IntentDescription = IntentDescription("Logs a new interaction with someone in TrackMate.")
     
     @Parameter(title: "Person Name", requestValueDialog: "Who was this interaction with?")

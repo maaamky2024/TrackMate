@@ -58,7 +58,7 @@ struct AIInsightService {
 		let session = LanguageModelSession()
 		
 		let prompt = """
-   Analyze these behavioral interactions with \(person).
+   Analyze these interactions with \(person).
    
    CRITICAL DATA BASELINE (Calculated from mathematical interaction trends): \(baselineSummary)
    
@@ -69,7 +69,7 @@ struct AIInsightService {
    
    Respond with ONLY a raw JSON onject (no markdown formatting, no backticks) matching this structure exactly:
    { 
-   "summary": "Provide an assessment of the overall health of the relationship, explicitly referencing specific behavior logs when explaining the reason for how you assessed the overall health of the relationship.",
+   "summary": "Provide an analysis of the relationship. Include what's working, what's not working, and make a suggestion to the user that would help them improve their situation.",
    "greenFlags": ["List of objective green flags. ONLY extract green flags from positive interactions. Link them explicitly to emotional consistency."],
    "redFlags": ["List of critical red flags. Evaluate logs against love-bombing, manipulation, or trauma-bonding patterns if the baseline data shows high volatility."]
    }
@@ -164,4 +164,45 @@ struct AIInsightService {
 			return "The model detected text patterns associated with \(category)."
 		}
 	}
+	
+	// Analyzes text and assigns exactly one behavioral category
+		static func classifyBehavior(text: String) async throws -> String {
+			let model = SystemLanguageModel.default
+			guard model.isAvailable, !text.isEmpty else { return "Unknown" }
+			
+			let session = LanguageModelSession()
+			
+			let prompt = """
+			You are a classification engine. Analyze the following interaction and output ONLY the exact name of the matching behavioral category. Do not output any other words, punctuation, or conversational text.
+
+			Categories:
+			- Consistent Reliability
+			- Control Disguised as Care
+			- Hoovering
+			- Stonewalling
+			- Trauma Bonding
+			- Accountability
+			- Open Communication
+			- Love Bombing
+			- Respecting Boundaries
+			- Emotional Validation
+			- DARVO
+			- Codependency
+			- Constructive Resolution
+			- Encouraging Autonomy
+			- Gaslighting
+			- Healthy Interdependence
+			- None
+
+			Interaction: "\(text)"
+			"""
+			
+			do {
+				let response = try await session.respond(to: prompt)
+				return response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+			} catch {
+				print("Behavior classification failed: \(error.localizedDescription)")
+				return "Unknown"
+			}
+		}
 }

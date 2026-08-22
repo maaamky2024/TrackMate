@@ -38,9 +38,7 @@ struct NewInteractionEntryView: View {
 	private let emotionOptions = ["Happy", "Sad", "Calm", "Anxious", "Confused", "Belittled", "Loved", "Angry", "Guilty", "Invalidated", "Empowered", "Safe", "Unsafe"]
 	private let responseOptions = ["Yes", "No", "I'm Not Sure"]
 	private let overallOptions = ["Positive", "Negative", "I'm Not Sure"]
-	
-	private let aiFinder = RedFlagFinder()
-	
+		
 	// MARK: - Body
 	var body: some View {
 		NavigationStack {
@@ -200,43 +198,54 @@ struct NewInteractionEntryView: View {
 		guard !hasSavedInteraction else { return }
 		hasSavedInteraction = true
 		
-		let newEntry = Interaction(context: viewContext)
-		newEntry.id = UUID()
-		newEntry.timestamp = Date()
-		newEntry.personName = personName
-		newEntry.interactionType = interactionType
-		newEntry.notes = notes
-		
-		// Transformable storage
-		newEntry.emotionTags = selectedEmotions.sorted() as NSArray
-		
-		newEntry.didFeelRespected = didFeelRespected
-		newEntry.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
-		newEntry.didFeelEmotionallySafe = didFeelEmotionallySafe
-		newEntry.overallExperience = overallExperience
-		
-		let aiResult = aiFinder.predict(text: notes)
-		
-		if aiResult.label != "Neutral" && aiResult.label != "Unknown" {
-			newEntry.detectedRedFlag = aiResult.label
-			newEntry.flagConfidence = aiResult.confidence
-			newEntry.flagReason = fetchFlagReason(for: aiResult.label)
-			print("AI Flagged: \(aiResult.label)")
+		Task { @MainActor in
+			let newEntry = Interaction(context: viewContext)
+			newEntry.id = UUID()
+			newEntry.timestamp = Date()
+			newEntry.personName = personName
+			newEntry.interactionType = interactionType
+			newEntry.notes = notes
 			
-			let safeName = personName.isEmpty ? "this person" : personName
-			NotificationManager.shared.scheduleHindsightReflection(for: safeName, interactionId: newEntry.id ?? UUID())
-		} else {
-			newEntry.detectedRedFlag = "Inconclusive"
-			newEntry.flagConfidence = aiResult.confidence
-			print("AI Result: Inconclusive")
-		}
-		
-		do {
-			try viewContext.save()
+			// Transformable storage
+			newEntry.emotionTags = selectedEmotions.sorted() as NSArray
 			
-			finishSaveFlow()
-		} catch {
-			print("Error saving entry: \(error.localizedDescription)")
+			newEntry.didFeelRespected = didFeelRespected
+			newEntry.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
+			newEntry.didFeelEmotionallySafe = didFeelEmotionallySafe
+			newEntry.overallExperience = overallExperience
+			
+			// 1. Evaluate
+			let category = (try? await AIInsightService.classifyBehavior(text: notes)) ?? "Unknown"
+			
+			// 2. Process
+			if category != "Neutral" && category != "Unknown" && category != "None" {
+				newEntry.detectedRedFlag = category
+				newEntry.flagConfidence = 1.0
+				
+				if let dynamicReason = try? await AIInsightService.generateFlagExplanation(category: category, text: notes) {
+					newEntry.flagReason = dynamicReason
+				} else {
+					newEntry.flagReason = fetchFlagReason(for: category)
+				}
+				
+				print("AI Flagged: \(category)")
+				
+				let safeName = personName.isEmpty ? "this person" : personName
+				NotificationManager.shared.scheduleHindsightReflection(for: safeName, interactionId: newEntry.id ?? UUID())
+			} else {
+				newEntry.detectedRedFlag = "Inconclusive"
+				newEntry.flagConfidence = 0.0
+				print("AI Result: Inconclusive")
+			}
+			
+			// 3. Save
+			do {
+				try viewContext.save()
+				
+				finishSaveFlow()
+			} catch {
+				print("Error saving entry: \(error.localizedDescription)")
+			}
 		}
 	}
 	

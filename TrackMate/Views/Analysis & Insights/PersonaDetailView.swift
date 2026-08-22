@@ -153,49 +153,6 @@ struct PersonaDetailView: View {
 										.foregroundColor(themeManager.color("SecondaryText"))
 								}
 							}
-							// MARK: - Context & Correction Injection
-							VStack(alignment: .leading, spacing: 12) {
-								HStack {
-									Image(systemName: "pencil.and.outline")
-										.foregroundColor(themeManager.color("AccentColor"))
-									Text("AI Context & Corrections")
-										.font(.headline)
-										.foregroundColor(themeManager.color("PrimaryText"))
-									Spacer()
-									Button(isEditingContext ? "Save & Analyze" : "Edit") {
-										if isEditingContext {
-											generateAnalysis(forceRefresh: true)
-										}
-										withAnimation {
-											isEditingContext.toggle()
-										}
-									}
-									.font(.subheadline)
-									.foregroundColor(themeManager.color("AccentColor"))
-								}
-								
-								if isEditingContext {
-									TextEditor(text: $customContext)
-										.frame(minHeight: 100)
-										.padding(8)
-										.background(themeManager.color("PrimaryText").opacity(0.05))
-										.cornerRadius(8)
-										.foregroundColor(themeManager.color("PrimaryText"))
-										.overlay(
-											RoundedRectangle(cornerRadius: 8)
-												.stroke(themeManager.color("AccentColor").opacity(0.3), lineWidth: 1)
-										)
-								} else if !customContext.isEmpty {
-									Text(customContext)
-										.font(.subheadline)
-										.foregroundColor(themeManager.color("SecondaryText"))
-								} else {
-									Text("Add context to help us provide a more accurate analysis.")
-										.font(.subheadline)
-										.foregroundColor(themeManager.color("SecondaryText"))
-										.italic()
-								}
-							}
 						}
 						.padding()
 						.frame(maxWidth: .infinity, alignment: .leading)
@@ -227,6 +184,54 @@ struct PersonaDetailView: View {
 						.background(themeManager.color("CardFill"))
 						.cornerRadius(16)
 					}
+					
+					// MARK: - Context & Correction Injection
+					VStack(alignment: .leading, spacing: 12) {
+						HStack {
+							Image(systemName: "pencil.and.outline")
+								.foregroundColor(themeManager.color("AccentColor"))
+							Text("AI Context & Corrections")
+								.font(.headline)
+								.foregroundColor(themeManager.color("PrimaryText"))
+							Spacer()
+							Button(isEditingContext ? "Save & Analyze" : "Edit") {
+								if isEditingContext {
+									generateAnalysis(forceRefresh: true)
+								}
+								withAnimation {
+									isEditingContext.toggle()
+								}
+							}
+							.font(.subheadline)
+							.foregroundColor(themeManager.color("AccentColor"))
+						}
+						
+						if isEditingContext {
+							TextEditor(text: $customContext)
+								.frame(minHeight: 100)
+								.padding(8)
+								.background(themeManager.color("PrimaryText").opacity(0.05))
+								.cornerRadius(8)
+								.foregroundColor(themeManager.color("PrimaryText"))
+								.overlay(
+									RoundedRectangle(cornerRadius: 8)
+										.stroke(themeManager.color("AccentColor").opacity(0.3), lineWidth: 1)
+								)
+						} else if !customContext.isEmpty {
+							Text(customContext)
+								.font(.subheadline)
+								.foregroundColor(themeManager.color("SecondaryText"))
+						} else {
+							Text("Add context to help us provide a more accurate analysis.")
+								.font(.subheadline)
+								.foregroundColor(themeManager.color("SecondaryText"))
+								.italic()
+						}
+					}
+					.padding()
+					.frame(maxWidth: .infinity, alignment: .leading)
+					.background(themeManager.color("CardFill"))
+					.cornerRadius(16)
 				}
 			}
 			.padding()

@@ -9,13 +9,11 @@ import Foundation
 import CoreData
 
 class InteractionAnalyzer: InteractionAnalyzerProtocol {
-    private let mlModel: RedFlagFinder
     private let feedbackRepo: FeedbackRepositoryProtocol
     private let similarityEvaluator: SimilarityEvaluatorProtocol
     private let context: NSManagedObjectContext // For fetching RedFlags json descriptions
     
-    init(mlModel: RedFlagFinder, feedbackRepo: FeedbackRepositoryProtocol, similarityEvaluator: SimilarityEvaluatorProtocol, context: NSManagedObjectContext) {
-	   self.mlModel = mlModel
+    init(feedbackRepo: FeedbackRepositoryProtocol, similarityEvaluator: SimilarityEvaluatorProtocol, context: NSManagedObjectContext) {
 	   self.feedbackRepo = feedbackRepo
 	   self.similarityEvaluator = similarityEvaluator
 	   self.context = context
@@ -24,7 +22,7 @@ class InteractionAnalyzer: InteractionAnalyzerProtocol {
     func analyze(interaction: Interaction) async throws -> [RedFlagMatch] {
 	   var results: [RedFlagMatch] = []
 	   
-	   // 1. Prepare text input exactly as you did before
+	   // 1. Prepare text input
 	   let userNotes = interaction.notes ?? ""
 	   let emotions = (interaction.emotionTags as? [String])?.joined(separator: ", ") ?? "none"
 	   let respectStr = interaction.didFeelRespected == "NO" ? "I did not feel respected." : "I felt respected."
@@ -32,9 +30,8 @@ class InteractionAnalyzer: InteractionAnalyzerProtocol {
 	   
 	   let textToAnalyze = "\(userNotes) \(respectStr) \(safeStr) My emotions were: \(emotions)."
 	   
-	   // 2. Get raw prediction from your existing CoreML wrapper
-	   let prediction = mlModel.predict(text: textToAnalyze)
-	   let category = prediction.label
+	   // 2. Classify using the Apple Intelligence foundation model
+	   let category = try await AIInsightService.classifyBehavior(text: textToAnalyze)
 	   
 	   // 3. Filter out non-toxic and empty labels immediately
 	   guard category != "None" && category != "Healthy" && category != "Neutral" && category != "Unknown" else {
@@ -82,7 +79,7 @@ class InteractionAnalyzer: InteractionAnalyzerProtocol {
 		    do {
 			    if let flag = try context.fetch(fetchRequest).first,
 				  let description = flag.redflagDescription {
-				    return fetchedDescription = description
+				    fetchedDescription = description
 			    }
 		    } catch {
 			    print("Failed to fetch red flag explanation: \(error)")

@@ -198,12 +198,10 @@ struct InteractionDetailView: View {
     
 	@MainActor
     private func performFlagMatching() async -> [(RedFlags, String)] {
-	  let mlModel = RedFlagFinder()
 	    let feedbackRepo = FeedbackRepository(context: viewContext)
 	    let similarityEvaluator = SemanticSimilarityEvaluator()
 	    
 	    let analyzer = InteractionAnalyzer(
-		mlModel: mlModel,
 		feedbackRepo: feedbackRepo,
 		similarityEvaluator: similarityEvaluator,
 		context: viewContext
