@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="25185.6" systemVersion="26A5416b" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="ContextNote" representedClassName="ContextNote" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timeStamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="tonalMarker" optional="YES" attributeType="String"/>
+        <relationship name="interaction" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Interaction" inverseName="contextNotes" inverseEntity="Interaction"/>
+    </entity>
+    <entity name="DetectedPattern" representedClassName="DetectedPattern" syncable="YES" codeGenerationType="class">
+        <attribute name="dateDetected" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="flagType" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="personName" optional="YES" attributeType="String"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="summary" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="Interaction" representedClassName="Interaction" syncable="YES" codeGenerationType="class">
+        <attribute name="detectedRedFlag" optional="YES" attributeType="String"/>
+        <attribute name="didFeelBoundariesAcknowledged" optional="YES" attributeType="String"/>
+        <attribute name="didFeelEmotionallySafe" optional="YES" attributeType="String"/>
+        <attribute name="didFeelRespected" optional="YES" attributeType="String"/>
+        <attribute name="emotionTags" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
+        <attribute name="flagConfidence" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="flagReason" optional="YES" attributeType="String"/>
+        <attribute name="frictionCategoryIdentifier" optional="YES" attributeType="String"/>
+        <attribute name="frictionProvenance" optional="YES" attributeType="String"/>
+        <attribute name="frictionReviewState" optional="YES" attributeType="String"/>
+        <attribute name="frictionTaxonomyVersion" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="interactionType" optional="YES" attributeType="String"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="overallExperience" optional="YES" attributeType="String"/>
+        <attribute name="personName" attributeType="String" defaultValueString="Unknown"/>
+        <attribute name="safetyIndicatorIdentifier" optional="YES" attributeType="String"/>
+        <attribute name="safetyProvenance" optional="YES" attributeType="String"/>
+        <attribute name="safetyReviewState" optional="YES" attributeType="String"/>
+        <attribute name="safetyTaxonomyVersion" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" attributeType="Date" defaultDateTimeInterval="793313580" usesScalarValueType="NO"/>
+        <relationship name="contextNotes" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ContextNote" inverseName="interaction" inverseEntity="ContextNote"/>
+    </entity>
+    <entity name="InteractionFeedback" representedClassName="InteractionFeedback" syncable="YES" codeGenerationType="class">
+        <attribute name="cachedEmbedding" optional="YES" attributeType="Binary"/>
+        <attribute name="flaggedCategory" optional="YES" attributeType="String"/>
+        <attribute name="originalText" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userContext" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="InteractionLog" representedClassName="InteractionLog" syncable="YES" codeGenerationType="class">
+        <attribute name="details" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="personName" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
+        <attribute name="timestamp" attributeType="Date" defaultDateTimeInterval="793313940" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="RedFlags" representedClassName="RedFlags" syncable="YES" codeGenerationType="class">
+        <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="examples" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isFavorite" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="redFlag" optional="YES" attributeType="String"/>
+        <attribute name="redflagDescription" optional="YES" attributeType="String"/>
+        <attribute name="resources" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
+        <attribute name="scripts" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
+        <attribute name="tips" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
+        <attribute name="wasMatched" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="Theme" representedClassName="Theme" syncable="YES" codeGenerationType="class">
+        <attribute name="assetPrefix" optional="YES" attributeType="String"/>
+        <attribute name="isSelected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+    </entity>
+</model>
