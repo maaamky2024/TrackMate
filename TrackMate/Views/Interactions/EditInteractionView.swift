@@ -214,21 +214,53 @@ struct EditInteractionView: View {
         }
     }
     
-    private func saveChanges() {
-        interaction.personName = personName
-        interaction.interactionType = interactionType
-        interaction.notes = notes
-        interaction.emotionTags = Array(selectedEmotions) as NSObject
-        interaction.didFeelRespected = didFeelRespected
-        interaction.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
-        interaction.didFeelEmotionallySafe = didFeelEmotionallySafe
-	    interaction.overallExperience = overallExperience
-        
-        do {
-            try viewContext.save()
-            dismiss()
-        } catch {
-            print("Failed to save edits: \(error.localizedDescription)")
-        }
-    }
+	private func saveChanges() {
+		let interactionObjectID = interaction.objectID
+		
+		let capturedPersonName = personName
+		let capturedInteractionType = interactionType
+		let capturedNotes = notes
+		let capturedEmotions = Array(selectedEmotions)
+		let capturedDidFeelRespected = didFeelRespected
+		let capturedDidFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
+		let capturedDidFeelEmotionallySafe = didFeelEmotionallySafe
+		let capturedOverallExperience = overallExperience
+		
+		let backgroundContext = PersistenceController.shared.newBackgroundContext()
+		
+		Task {
+			do {
+				try await backgroundContext.perform {
+					guard let interactionToUpdate = try backgroundContext.existingObject(with: interactionObjectID) as? Interaction else {
+						throw NSError(
+							domain: "TrackMate.EditInteraction",
+							code: 1,
+							userInfo: [
+								NSLocalizedDescriptionKey:
+									"The interaction could not be found."
+							]
+						)
+					}
+					
+					interactionToUpdate.personName = capturedPersonName
+					interactionToUpdate.interactionType = capturedInteractionType
+					interactionToUpdate.notes = capturedNotes
+					interactionToUpdate.emotionTags = capturedEmotions as NSArray
+					
+					interactionToUpdate.didFeelRespected = capturedDidFeelRespected
+					interactionToUpdate.didFeelBoundariesAcknowledged = capturedDidFeelBoundariesAcknowledged
+					interactionToUpdate.didFeelEmotionallySafe = capturedDidFeelEmotionallySafe
+					interactionToUpdate.overallExperience = capturedOverallExperience
+					
+					try backgroundContext.save()
+				}
+				
+				await MainActor.run {
+					dismiss()
+				}
+			} catch {
+				print("Failed to save edits: \(error.localizedDescription)")
+			}
+		}
+	}
 }
