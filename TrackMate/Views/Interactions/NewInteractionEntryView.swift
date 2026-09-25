@@ -73,7 +73,7 @@ struct NewInteractionEntryView: View {
 				// MARK: - Interaction Summary
 				Section(
 					header: sectionHeader("Brief Summary (What happened?)"),
-					footer: Text("You can add a deep-dive journal reflection after saving.")
+					footer: Text("You can add additional context after you have had time to reflect on this interaction.")
 						.font(.caption)
 						.foregroundColor(themeManager.color("SecondaryText"))
 				) {
@@ -81,7 +81,7 @@ struct NewInteractionEntryView: View {
 						.frame(minHeight: 110)
 						.foregroundColor(themeManager.color("PrimaryText"))
 						.placeholder(when: notes.isEmpty) {
-							Text("Log the factual, objective details here...")
+							Text("Write the details here...")
 								.foregroundColor(themeManager.color("SecondaryText"))
 								.padding(8)
 						}

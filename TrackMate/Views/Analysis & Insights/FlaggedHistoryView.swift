@@ -40,7 +40,7 @@ struct FlaggedHistoryView: View {
 						.bold()
 						.foregroundColor(themeManager.color("PrimaryText"))
 					
-					Text("Behaviroal Criteria:")
+					Text("Behavioral Criteria:")
 						.font(.subheadline)
 						.bold()
 						.foregroundColor(themeManager.color("SecondaryText"))

@@ -8,16 +8,23 @@
 import SwiftUI
 import CoreData
 
+enum TabSelection: Int {
+	case interactions = 0
+	case redFlags = 1
+	case analysis = 2
+	case settings = 3
+}
+
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var themeManager: ThemeManager
     
-    @State private var selectedTab = 0
+	@State private var selectedTab: TabSelection = .interactions
     
 	var body: some View {
 		mainTabsView
 			.onReceive(NotificationCenter.default.publisher(for: .navigateToPatterns)) { _ in
-				selectedTab = 2
+				selectedTab = .analysis
 			}
 	}
     
@@ -32,7 +39,7 @@ struct ContentView: View {
 						 .renderingMode(.template)
 				 }
                 }
-                .tag(0)
+			 .tag(TabSelection.interactions)
             
             RedFlagsTabView()
                 .tabItem {
@@ -43,7 +50,7 @@ struct ContentView: View {
 						 .renderingMode(.template)
 				 }
                 }
-                .tag(1)
+			 .tag(TabSelection.redFlags)
 		   
 		   AnalysisView()
 			   .tabItem {
@@ -54,8 +61,8 @@ struct ContentView: View {
 						   .renderingMode(.template)
 				   }
 			   }
-			   .tag(2)
-            
+			   .tag(TabSelection.analysis)
+		   
             SettingsTabView()
                 .tabItem {
 				 Label {
@@ -65,7 +72,7 @@ struct ContentView: View {
 						 .renderingMode(.template)
 				 }
                 }
-                .tag(3)
+			 .tag(TabSelection.settings)
         }
         .accentColor(themeManager.color("AccentColor"))
         .background(themeManager.color("PrimaryBackground"))

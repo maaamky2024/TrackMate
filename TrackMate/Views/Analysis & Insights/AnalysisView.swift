@@ -87,7 +87,7 @@ struct AnalysisView: View {
 							 .font(.largeTitle)
 							 .foregroundColor(themeManager.color("AccentColor").opacity(0.5))
 						  
-						  Text("Keep logging your interactions. CiraBot will notify you here if/when a behavioral pattern emerges.")
+						  Text("Keep logging your interactions. You will be notified if/when a possible behavioral pattern is noticed.")
 							 .font(.subheadline)
 							 .foregroundColor(themeManager.color("SecondaryText"))
 							 .multilineTextAlignment(.center)
