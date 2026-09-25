@@ -198,53 +198,101 @@ struct NewInteractionEntryView: View {
 		guard !hasSavedInteraction else { return }
 		hasSavedInteraction = true
 		
-		Task { @MainActor in
-			let newEntry = Interaction(context: viewContext)
-			newEntry.id = UUID()
-			newEntry.timestamp = Date()
-			newEntry.personName = personName
-			newEntry.interactionType = interactionType
-			newEntry.notes = notes
+		let capturedPersonName = personName
+		let capturedInteractionType = interactionType
+		let capturedNotes = notes
+		let capturedEmotions = selectedEmotions.sorted()
+		let capturedDidFeelRespected = didFeelRespected
+		let capturedDidFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
+		let capturedDidFeelEmotionallySafe = didFeelEmotionallySafe
+		let capturedOverallExperience = overallExperience
+		
+		Task {
+			let category = (try? await AIInsightService.classifyBehavior(text: capturedNotes)) ?? "Unknown"
 			
-			// Transformable storage
-			newEntry.emotionTags = selectedEmotions.sorted() as NSArray
+			var generatedReason: String?
 			
-			newEntry.didFeelRespected = didFeelRespected
-			newEntry.didFeelBoundariesAcknowledged = didFeelBoundariesAcknowledged
-			newEntry.didFeelEmotionallySafe = didFeelEmotionallySafe
-			newEntry.overallExperience = overallExperience
-			
-			// 1. Evaluate
-			let category = (try? await AIInsightService.classifyBehavior(text: notes)) ?? "Unknown"
-			
-			// 2. Process
-			if category != "Neutral" && category != "Unknown" && category != "None" {
-				newEntry.detectedRedFlag = category
-				newEntry.flagConfidence = 1.0
+			if category != "Neutral" && 
+				category != "Unknown" &&
+				category != "None" {
 				
-				if let dynamicReason = try? await AIInsightService.generateFlagExplanation(category: category, text: notes) {
-					newEntry.flagReason = dynamicReason
-				} else {
-					newEntry.flagReason = fetchFlagReason(for: category)
+				generatedReason = try? await AIInsightService.generateFlagExplanation(
+					category: category,
+					text: capturedNotes
+					)
+		}
+			
+			let backgroundContext = PersistenceController.shared.newBackgroundContext()
+			
+			do {
+				let interactionID = try await backgroundContext.perform {
+					let newEntry = Interaction(context: backgroundContext)
+					
+					let newID = UUID()
+					newEntry.id = newID
+					newEntry.timestamp = Date()
+					newEntry.personName = capturedPersonName
+					newEntry.interactionType = capturedInteractionType
+					newEntry.notes = capturedNotes
+					newEntry.emotionTags = capturedEmotions as NSArray
+					newEntry.didFeelRespected = capturedDidFeelRespected
+					newEntry.didFeelBoundariesAcknowledged = capturedDidFeelBoundariesAcknowledged
+					newEntry.didFeelEmotionallySafe = capturedDidFeelEmotionallySafe
+					newEntry.overallExperience = capturedOverallExperience
+					
+					if category != "Neutral" &&
+						category != "Unknown" &&
+						category != "None" {
+						
+						newEntry.detectedRedFlag = category
+						newEntry.flagConfidence = 1.0
+						
+						if let generatedReason {
+							newEntry.flagReason = generatedReason
+						} else {
+							newEntry.flagReason = fetchFlagReason(
+								for: category,
+								context: backgroundContext
+							)
+						}
+						print("AI Flagged: \(category)")
+					} else {
+						newEntry.detectedRedFlag = "Inconclusive"
+						newEntry.flagConfidence = 0.0
+						
+						print("AI Result: Inconclusive")
+					}
+					
+					try backgroundContext.save()
+					
+					return newID
 				}
 				
-				print("AI Flagged: \(category)")
+				if category != "Neutral" &&
+					category != "Unknown" &&
+					category != "None" {
+					
+					let safeName = capturedPersonName.isEmpty
+					? "this person"
+					: capturedPersonName
+					
+					NotificationManager.shared.scheduleHindsightReflection(
+						for: safeName,
+						interactionId: interactionID
+					)
+				}
 				
-				let safeName = personName.isEmpty ? "this person" : personName
-				NotificationManager.shared.scheduleHindsightReflection(for: safeName, interactionId: newEntry.id ?? UUID())
-			} else {
-				newEntry.detectedRedFlag = "Inconclusive"
-				newEntry.flagConfidence = 0.0
-				print("AI Result: Inconclusive")
-			}
-			
-			// 3. Save
-			do {
-				try viewContext.save()
-				
-				finishSaveFlow()
+				await MainActor.run {
+					finishSaveFlow()
+				}
 			} catch {
 				print("Error saving entry: \(error.localizedDescription)")
+				
+				await MainActor.run {
+					hasSavedInteraction = false
+					saveToastText = "Failed to save interaction."
+					showSaveToast = true
+				}
 			}
 		}
 	}
@@ -257,12 +305,15 @@ struct NewInteractionEntryView: View {
 		}
 	}
 	
-	private func fetchFlagReason(for category: String) -> String {
+	private func fetchFlagReason(
+		for category: String,
+		context: NSManagedObjectContext
+	) -> String {
 		let request: NSFetchRequest<RedFlags> = RedFlags.fetchRequest()
 		request.predicate = NSPredicate(format: "category == %@", category)
 		request.fetchLimit = 1
 		
-		if let flag = try? viewContext.fetch(request).first,
+		if let flag = try? context.fetch(request).first,
 		   let description = flag.redflagDescription {
 			return description
 		}
