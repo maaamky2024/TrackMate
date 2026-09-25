@@ -8,6 +8,8 @@
 import Foundation
 
 enum FrictionCategory: String, CaseIterable, Codable, Sendable, Identifiable {
+	static let taxonomyVersion = 1
+	
 	case miscommunication = "miscommunication"
 	case unmetExpectations = "unmet_expectations"
 	case communcationBreakdown = "communication_breakdown"

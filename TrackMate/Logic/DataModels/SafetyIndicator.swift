@@ -8,6 +8,8 @@
 import Foundation
 
 enum SafetyIndicator: String, CaseIterable, Codable, Sendable, Identifiable {
+	static let taxonomyVersion = 1
+	
 	case threatsOrIntimidation = "threats_or_intimidation"
 	case physicalHarm = "physical_harm"
 	case sexualCoercion = "sexual_coercion"
