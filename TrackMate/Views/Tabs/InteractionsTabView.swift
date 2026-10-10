@@ -116,13 +116,34 @@ struct InteractionsTabView: View {
     }
     
     
-    private func deleteInteractions(at offsets: IndexSet) {
-        offsets.map { interactions[$0] }.forEach(viewContext.delete)
-        do {
-            try viewContext.save()
-        } catch {
-            print("Failed to delete interaction(s): \(error)")
-        }
-    }
+	private func deleteInteractions(at offsets: IndexSet) {
+		let objectIDs = offsets.map { interactions[$0].objectID }
+		
+		let backgroundContext = PersistenceController.shared.newBackgroundContext()
+		
+		Task {
+			do {
+				try await backgroundContext.perform {
+					for objectID in objectIDs {
+						if let interactionToDelete = try? backgroundContext.existingObject(
+							with: objectID
+						) {
+							backgroundContext.delete(interactionToDelete)
+						}
+					}
+					
+					try backgroundContext.save()
+				}
+				
+				await MainActor.run {
+					indexSetToDelete = nil
+				}
+			} catch {
+				print(
+	"Failed to delte interaction(s): \(error.localizedDescription)"
+				)
+			}
+		}
+	}
 }
 
