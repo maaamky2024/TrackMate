@@ -9,31 +9,57 @@ import Foundation
 import MLXLMCommon
 import MLXLLM
 
+enum ModelLoadState: Equatable {
+	case idle
+	case downloading(progress: Double)
+	case reaady
+	case failed(error: String)
+}
+
 @Observable
 @MainActor
 class LLMCoachService {
+	var state: ModelLoadState = .idle
 	var session: ChatSession?
-	var isModelLoaded = false
 	
-	// Download and load model
-	func initializeModel() async throws {
-		let modelContainer = try await loadModel(id: "mlx-community/Llama-3.2-3B-Instruct-4bit")
-		self.session = ChatSession(model: modelContainer)
-		self.isModelLoaded = true
+	// Init., download, and load model
+	func loadModel() async {
+		guard stte == .idle || case .failed = state else { return }
+		self.state = .downloading(progress: 0.0)
+		
+		do {
+			let modelContainer = try await MLXLMCommon.loadModel(id: "mlx-community/Llama-3.2-3B-Instruct-4bit") { progress in
+				Task { @MainActor in
+					self.state = .downloading(progress: progress.fractionCompleted)
+				}
+			}
+			self.session = ChatSession(model: modelContainer)
+			self.state = .ready
+		} catch {
+			self.state = .failed(error.localizedDescription)
+		}
+	}
+	
+	/// Clear memory to prevent app from crashing
+	func clearMemory() {
+		self.session = nil
+		self.state = .idle
 	}
 	
 	// Formats Core Data logs into a prompt
-	func generateCoachResponse(userPrompt: String, recentLogs: [String]) async throws -> AsyncThrowingStream<String, Error> {
-		guard let session = session else { throw URLError(.badServerResponse) }
+	func generateResponse(prompt: String, contextLogs: [String]) async throws -> AsyncThrowingStream<String, Error> {
+		guard let session = session else { throw URLError(.badServerResponse)
+		}
 		
-		let logContext = recentLogs.joined(separator: "\n")
+		let historicalContext = contextLogs.joined(separator: "\n")
 		let fullPromt = """
-    System: You are an objective, empathetic relationship coach. Read the useer's recent interaction logs: 
-   \(logContext)
-   
-    User: \(userPrompt)
-   """
+				System: You are 'TrackMate', an objective, empathetic relationship coach. Review the user's recent relationship interaction logs to provide tailored advice.
+				Recent Logs:
+				\(historicalContext)
+
+				User: \(prompt)
+			"""
 		
-		return try session.streamResponse(to: fullPromt)
+		return try await session.streamResponse(to: fullPromt)
 	}
 }
