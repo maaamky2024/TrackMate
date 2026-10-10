@@ -11,7 +11,7 @@ import MLXLLM
 
 @Observable
 @MainActor
-class LLMCoachqService {
+class LLMCoachService {
 	var session: ChatSession?
 	var isModelLoaded = false
 	
