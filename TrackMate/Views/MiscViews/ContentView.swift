@@ -10,7 +10,7 @@ import CoreData
 
 enum TabSelection: Int {
 	case interactions = 0
-	case redFlags = 1
+	case coachChat = 1
 	case analysis = 2
 	case settings = 3
 }
@@ -23,9 +23,6 @@ struct ContentView: View {
     
 	var body: some View {
 		mainTabsView
-			.onReceive(NotificationCenter.default.publisher(for: .navigateToPatterns)) { _ in
-				selectedTab = .analysis
-			}
 	}
     
     private var mainTabsView: some View {
@@ -41,16 +38,16 @@ struct ContentView: View {
                 }
 			 .tag(TabSelection.interactions)
             
-            RedFlagsTabView()
-                .tabItem {
-				 Label {
-					 Text("Red Flags")
-				 } icon: {
-					 Image("RedFlagTabIcon")
-						 .renderingMode(.template)
-				 }
-                }
-			 .tag(TabSelection.redFlags)
+            CoachChatView()
+			   .tabItem {
+				   Label {
+					   Text("Relationship Coach")
+				   } icon: {
+					   Image("LLMTabIcon")
+						   .renderingMode(.template)
+				   }
+			   }
+			   .tag(TabSelection.coachChat)
 		   
 		   AnalysisView()
 			   .tabItem {
@@ -77,14 +74,4 @@ struct ContentView: View {
         .accentColor(themeManager.color("AccentColor"))
         .background(themeManager.color("PrimaryBackground"))
     }
-}
-
-#Preview {
-    ContentView()
-        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-        .environmentObject(ThemeManager.shared)
-}
-
-extension Notification.Name {
-	static let navigateToPatterns = Notification.Name("navigateToPatterns")
 }
