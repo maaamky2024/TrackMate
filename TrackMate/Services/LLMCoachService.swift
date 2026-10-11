@@ -12,7 +12,7 @@ import MLXLLM
 enum ModelLoadState: Equatable {
 	case idle
 	case downloading(progress: Double)
-	case reaady
+	case ready
 	case failed(error: String)
 }
 
@@ -24,7 +24,7 @@ class LLMCoachService {
 	
 	// Init., download, and load model
 	func loadModel() async {
-		guard stte == .idle || case .failed = state else { return }
+		guard state == .idle || (if case .failed = state { true } else { false }) else { return }
 		self.state = .downloading(progress: 0.0)
 		
 		do {
@@ -36,7 +36,7 @@ class LLMCoachService {
 			self.session = ChatSession(model: modelContainer)
 			self.state = .ready
 		} catch {
-			self.state = .failed(error.localizedDescription)
+			self.state = .failed(error: error.localizedDescription)
 		}
 	}
 	
@@ -52,7 +52,7 @@ class LLMCoachService {
 		}
 		
 		let historicalContext = contextLogs.joined(separator: "\n")
-		let fullPromt = """
+		let fullPrompt = """
 				System: You are 'TrackMate', an objective, empathetic relationship coach. Review the user's recent relationship interaction logs to provide tailored advice.
 				Recent Logs:
 				\(historicalContext)
@@ -60,6 +60,6 @@ class LLMCoachService {
 				User: \(prompt)
 			"""
 		
-		return try await session.streamResponse(to: fullPromt)
+		return try await session.streamResponse(to: fullPrompt)
 	}
 }

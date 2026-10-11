@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EE943BE9307A97E200C1E3D3 /* MLXHuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = EE943BE8307A97E200C1E3D3 /* MLXHuggingFace */; };
-		EE943BEB307A97E200C1E3D3 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = EE943BEA307A97E200C1E3D3 /* MLXLLM */; };
-		EE943BED307A97E200C1E3D3 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = EE943BEC307A97E200C1E3D3 /* MLXLMCommon */; };
+		EE9D27AA307B419900C15580 /* MLXHuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = EE9D27A9307B419900C15580 /* MLXHuggingFace */; };
+		EE9D27AC307B419900C15580 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = EE9D27AB307B419900C15580 /* MLXLLM */; };
+		EE9D27AE307B419900C15580 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = EE9D27AD307B419900C15580 /* MLXLMCommon */; };
+		EE9D27B1307B41A400C15580 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EE9D27AF307B419900C15580 /* Metal.framework */; };
+		EE9D27B2307B41A400C15580 /* Metal.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = EE9D27AF307B419900C15580 /* Metal.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,7 +31,22 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		EE9D27B3307B41A400C15580 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				EE9D27B2307B41A400C15580 /* Metal.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		EE9D27AF307B419900C15580 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		EEB413922DA5770C00B19EF5 /* TrackMate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TrackMate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EEB413A62DA5770E00B19EF5 /* TrackMateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackMateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EEB413B02DA5770E00B19EF5 /* TrackMateUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackMateUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -71,9 +88,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EE943BEB307A97E200C1E3D3 /* MLXLLM in Frameworks */,
-				EE943BED307A97E200C1E3D3 /* MLXLMCommon in Frameworks */,
-				EE943BE9307A97E200C1E3D3 /* MLXHuggingFace in Frameworks */,
+				EE9D27AC307B419900C15580 /* MLXLLM in Frameworks */,
+				EE9D27AE307B419900C15580 /* MLXLMCommon in Frameworks */,
+				EE9D27B1307B41A400C15580 /* Metal.framework in Frameworks */,
+				EE9D27AA307B419900C15580 /* MLXHuggingFace in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,12 +112,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EE9D27A6307B410200C15580 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EE9D27AF307B419900C15580 /* Metal.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		EEB413892DA5770B00B19EF5 = {
 			isa = PBXGroup;
 			children = (
 				EEB413942DA5770C00B19EF5 /* TrackMate */,
 				EEB413A92DA5770E00B19EF5 /* TrackMateTests */,
 				EEB413B32DA5770E00B19EF5 /* TrackMateUITests */,
+				EE9D27A6307B410200C15580 /* Frameworks */,
 				EEB413932DA5770C00B19EF5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -124,6 +151,7 @@
 				EEB4138E2DA5770C00B19EF5 /* Sources */,
 				EEB4138F2DA5770C00B19EF5 /* Frameworks */,
 				EEB413902DA5770C00B19EF5 /* Resources */,
+				EE9D27B3307B41A400C15580 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -134,9 +162,9 @@
 			);
 			name = TrackMate;
 			packageProductDependencies = (
-				EE943BE8307A97E200C1E3D3 /* MLXHuggingFace */,
-				EE943BEA307A97E200C1E3D3 /* MLXLLM */,
-				EE943BEC307A97E200C1E3D3 /* MLXLMCommon */,
+				EE9D27A9307B419900C15580 /* MLXHuggingFace */,
+				EE9D27AB307B419900C15580 /* MLXLLM */,
+				EE9D27AD307B419900C15580 /* MLXLMCommon */,
 			);
 			productName = TrackMate;
 			productReference = EEB413922DA5770C00B19EF5 /* TrackMate.app */;
@@ -321,7 +349,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -356,7 +384,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -613,24 +641,25 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm";
 			requirement = {
-				kind = exactVersion;
-				version = 3.31.4;
+				kind = versionRange;
+				maximumVersion = 4.0.0;
+				minimumVersion = 3.31.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		EE943BE8307A97E200C1E3D3 /* MLXHuggingFace */ = {
+		EE9D27A9307B419900C15580 /* MLXHuggingFace */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EE943BE7307A97E200C1E3D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
 			productName = MLXHuggingFace;
 		};
-		EE943BEA307A97E200C1E3D3 /* MLXLLM */ = {
+		EE9D27AB307B419900C15580 /* MLXLLM */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EE943BE7307A97E200C1E3D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
 			productName = MLXLLM;
 		};
-		EE943BEC307A97E200C1E3D3 /* MLXLMCommon */ = {
+		EE9D27AD307B419900C15580 /* MLXLMCommon */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EE943BE7307A97E200C1E3D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
 			productName = MLXLMCommon;
