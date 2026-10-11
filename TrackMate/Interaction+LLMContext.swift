@@ -8,6 +8,18 @@
 import Foundation
 import CoreData
 
+// Helpers for Chat UI
+enum MessageRole: Sendable {
+	case user
+	case coach
+}
+
+struct ChatMessage: Identifiable, Sendable {
+	let id = UUID()
+	let role: MessageRole
+	var content: String
+}
+
 extension Interaction {
 	/// Format the interaction into a token-efficient summary for the LLM.
 	var coachContextSummary: String {
@@ -18,16 +30,4 @@ extension Interaction {
 		
 		return "- [\(formattedDate)] Notes: \"\(notes)\""
 	}
-}
-
-// Helpers for Chat UI
-enum Messagerole {
-	case user
-	case coach
-}
-
-struct ChatMessage: Identifiable {
-	let id = UUID()
-	let role: MessageRole
-	var content: String
 }

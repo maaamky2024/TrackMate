@@ -8,6 +8,9 @@
 import Foundation
 import MLXLMCommon
 import MLXLLM
+import MLXHuggingFace
+import HuggingFace
+import Tokenizers
 
 enum ModelLoadState: Equatable {
 	case idle
@@ -24,16 +27,28 @@ class LLMCoachService {
 	
 	// Init., download, and load model
 	func loadModel() async {
-		guard state == .idle || (if case .failed = state { true } else { false }) else { return }
+		switch state {
+		case .idle, .failed:
+			break
+		case .downloading, .ready:
+			return
+		}
+		
 		self.state = .downloading(progress: 0.0)
 		
 		do {
-			let modelContainer = try await MLXLMCommon.loadModel(id: "mlx-community/Llama-3.2-3B-Instruct-4bit") { progress in
+			let modelContainer = try await LLMModelFactory.shared.loadContainer(
+				from: #hubDownloader(),
+				using: #huggingFaceTokenizerLoader(),
+				configuration: .init(
+				id: "mlx-community/Llama-3.2-3B-Instruct-4bit")
+			) { progress in
 				Task { @MainActor in
 					self.state = .downloading(progress: progress.fractionCompleted)
 				}
 			}
-			self.session = ChatSession(model: modelContainer)
+			
+			self.session = ChatSession(modelContainer)
 			self.state = .ready
 		} catch {
 			self.state = .failed(error: error.localizedDescription)
@@ -47,8 +62,11 @@ class LLMCoachService {
 	}
 	
 	// Formats Core Data logs into a prompt
-	func generateResponse(prompt: String, contextLogs: [String]) async throws -> AsyncThrowingStream<String, Error> {
-		guard let session = session else { throw URLError(.badServerResponse)
+	func generateResponse(prompt: String, contextLogs: [String]) -> AsyncThrowingStream<String, Error> {
+		guard let session = session else {
+			return AsyncThrowingStream<String, Error> { continuation in
+				continuation.finish(throwing: URLError(.badServerResponse))
+			}
 		}
 		
 		let historicalContext = contextLogs.joined(separator: "\n")
@@ -60,6 +78,6 @@ class LLMCoachService {
 				User: \(prompt)
 			"""
 		
-		return try await session.streamResponse(to: fullPrompt)
+		return session.streamResponse(to: fullPrompt)
 	}
 }

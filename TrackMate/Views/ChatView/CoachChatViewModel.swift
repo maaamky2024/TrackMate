@@ -46,7 +46,7 @@ class CoachChatViewModel {
 		
 		// Output response
 		do {
-			let stream = try await service.generateResponse(prompt: text, contextLogs: contextArray)
+			let stream = service.generateResponse(prompt: text, contextLogs: contextArray)
 			
 			for try await token in stream {
 				if let index = messages.firstIndex(where: { $0.id == coachMessageId }) {

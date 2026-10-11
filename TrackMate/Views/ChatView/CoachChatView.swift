@@ -106,7 +106,7 @@ struct CoachChatView: View {
 				  Text(message.content)
 					 .padding(12)
 					 // User gets the Accent Color, Coach gets the CardFill color
-					 .background(message.role == .user ? Color("\(themeManager.assetPrefix)AccentColor") : Color("\(themeManager.assetPrefix)CardFill"))
+					 .background(message.role == .user ? Color(themeManager.color("AccentColor")) : Color(themeManager.color("CardFill")))
 					 .foregroundColor(message.role == .user ? .white : Color(themeManager.color("PrimaryText")))
 					 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 				  
