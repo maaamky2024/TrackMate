@@ -245,12 +245,22 @@ struct PersonaDetailView: View {
 	}
 	
 	private func deletePattern(_ pattern: DetectedPattern) {
-		withAnimation {
-			viewContext.delete(pattern)
-			try? viewContext.save()
+		let objectID = pattern.objectID
+		let backgroundContext = PersistenceController.shared.newBackgroundContext()
+		
+		Task {
+			do {
+				try await backgroundContext.perform {
+					if let patternToDelete = try? backgroundContext.existingObject(with: objectID) {
+						backgroundContext.delete(patternToDelete)
+						try backgroundContext.save()
+					}
+				}
+			} catch {
+				print("Failed to delete pattern: \(error.localizedDescription)")
+			}
 		}
 	}
-	
 	private func generateAnalysis(forceRefresh: Bool = false) {
 		guard analysis == nil || forceRefresh else { return }
 		isLoading = true
@@ -270,18 +280,18 @@ struct PersonaDetailView: View {
 		// 2. compute dunmaic analytical baseline
 		let baseline = PersonaAnalyticsService.calculateBaseline(for: personName, in: viewContext)
 		let baselineSummary = """
-			- Total Recorded Events: \(baseline.totalInteractions)
-			- Negative Interaction Density: \(String(format: "%.1f%%", baseline.negativeRatio * 100))
-			- Highest Frequency Emotional States: \(baseline.dominantEmotions.joined(separator: ", "))
-			- Trend Volatility Profile: \(baseline.volatilityScore)
-			"""
+   - Total Recorded Events: \(baseline.totalInteractions)
+   - Negative Interaction Density: \(String(format: "%.1f%%", baseline.negativeRatio * 100))
+   - Highest Frequency Emotional States: \(baseline.dominantEmotions.joined(separator: ", "))
+   - Trend Volatility Profile: \(baseline.volatilityScore)
+   """
 		
 		// 3. fire ai execution pipeline
 		Task {
 			do {
 				// Calls FoundationModels
 				if let response = try await AIInsightService.generatePersonaAnalysis(for: personName, contextString: contextString, userCorrections: customContext,
-					baselineSummary: baselineSummary
+																	    baselineSummary: baselineSummary
 				) {
 					
 					var cleanedResponse = response.trimmingCharacters(in: .whitespacesAndNewlines)

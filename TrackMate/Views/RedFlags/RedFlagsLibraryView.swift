@@ -97,8 +97,23 @@ struct RedFlagsLibraryView: View {
     
     /// Deletes red flag entries from Core Data
     private func deleteRedFlags(offsets: IndexSet) {
-        offsets.map { redFlags[$0] }.forEach(viewContext.delete)
-        saveContext()
+	    let objectIDs = offsets.map { redFlags[$0].objectID }
+	    let backgroundContext = PersistenceController.shared.newBackgroundContext()
+	    
+	    Task {
+		    do {
+			    try await backgroundContext.perform {
+				    for objectID in objectIDs {
+					    if let redFlagToDelete = try? backgroundContext.existingObject(with: objectID) {
+						    backgroundContext.delete(redFlagToDelete)
+					    }
+				    }
+				    try backgroundContext.save()
+			    }
+		    } catch {
+			    print("Error deleting red flag: \(error.localizedDescription)")
+		    }
+	    }
     }
     
     /// Saves the managed object context

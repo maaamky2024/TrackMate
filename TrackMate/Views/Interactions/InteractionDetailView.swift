@@ -197,43 +197,46 @@ struct InteractionDetailView: View {
     }
     
 	@MainActor
-    private func performFlagMatching() async -> [(RedFlags, String)] {
-	    let feedbackRepo = FeedbackRepository(context: viewContext)
-	    let similarityEvaluator = SemanticSimilarityEvaluator()
-	    
-	    let analyzer = InteractionAnalyzer(
-		feedbackRepo: feedbackRepo,
-		similarityEvaluator: similarityEvaluator,
-		context: viewContext
-	    )
-	    
-	    guard let matches = try? await analyzer.analyze(interaction: interaction), !matches.isEmpty else {
-		    return []
-	    }
-	    
-        let request: NSFetchRequest<RedFlags> = RedFlags.fetchRequest()
-        let categories = matches.map { $0.category }
-        request.predicate = NSPredicate(format: "category IN %@", categories)
-        
-        let fetched = (try? viewContext.fetch(request)) ?? []
-        
-        var needsSave = false
-        for redFlag in fetched where !redFlag.wasMatched {
-            redFlag.wasMatched = true
-            needsSave = true
-        }
-        
-        if needsSave {
-            try? viewContext.save()
-        }
-        
-        return fetched.compactMap { redFlag in
-            matches.first(where: { $0.category == redFlag.category }).map {
-                (redFlag, $0.reason)
-            }
-        }
-    }
-    
+	private func performFlagMatching() async -> [(RedFlags, String)] {
+		let feedbackRepo = FeedbackRepository(context: viewContext)
+		let similarityEvaluator = SemanticSimilarityEvaluator()
+		
+		let analyzer = InteractionAnalyzer(
+			feedbackRepo: feedbackRepo,
+			similarityEvaluator: similarityEvaluator,
+			context: viewContext
+		)
+		
+		guard let matches = try? await analyzer.analyze(interaction: interaction), !matches.isEmpty else {
+			return []
+		}
+		
+		let request: NSFetchRequest<RedFlags> = RedFlags.fetchRequest()
+		let categories = matches.map { $0.category }
+		request.predicate = NSPredicate(format: "category IN %@", categories)
+		
+		let fetched = (try? viewContext.fetch(request)) ?? []
+		
+		let objectIDsToUpdate = fetched.filter { !$0.wasMatched }.map { $0.objectID }
+		
+		if !objectIDsToUpdate.isEmpty {
+			let backgroundContext = PersistenceController.shared.newBackgroundContext()
+			await backgroundContext.perform {
+				for objectID in objectIDsToUpdate {
+					if let redFlagtToUpdate = try? backgroundContext.existingObject(with: objectID) as? RedFlags {
+						redFlagtToUpdate.wasMatched = true
+					}
+				}
+				try? backgroundContext.save()
+			}
+		}
+		
+		return fetched.compactMap { redFlag in
+			matches.first(where: { $0.category == redFlag.category }).map {
+				(redFlag, $0.reason)
+			}
+		}
+	}
     private func redFlagSuggestionsSection() -> some View {
         guard !suggestions.isEmpty else { return AnyView(EmptyView()) }
         
