@@ -10,7 +10,7 @@ import CoreData
 struct PersistenceController {
     static let shared = PersistenceController()
     
-    let container: NSPersistentCloudKitContainer
+    let container: NSPersistentContainer
     
     @MainActor
     static let preview: PersistenceController = {
@@ -33,7 +33,7 @@ struct PersistenceController {
     }()
     
 	init(inMemory: Bool = false) {
-		let container = NSPersistentCloudKitContainer(name: "TrackMate")
+		let container = NSPersistentContainer(name: "TrackMate")
 		
 		if inMemory {
 			container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
