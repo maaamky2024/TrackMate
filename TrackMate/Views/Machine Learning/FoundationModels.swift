@@ -15,6 +15,12 @@ struct FrictionAnalysisResult: Codable {
 	let provenance: String
 }
 
+struct SafetyAnalysisResult: Codable {
+	let indicatorIdentifier: String
+	let confidence: Double
+	let provenance: String
+}
+
 struct AIInsightService {
 	
 	// Analyzes text to determine ordinary relationship friction, strictly isolated from safety/toxicity.
@@ -79,6 +85,71 @@ struct AIInsightService {
 		   } catch {
 			  print("Friction classification failed: \(error.localizedDescription)")
 			  return FrictionAnalysisResult(categoryIdentifier: "none", confidence: 0.0, provenance: "Analysis failed or could not be parsed.")
+		   }
+	    }
+	
+	// Analyzes text for severe safety indicators, strictly isolated from ordinary relationship friction.
+	    static func classifySafety(text: String) async throws -> SafetyAnalysisResult {
+		   let model = SystemLanguageModel.default
+		   guard model.isAvailable, !text.isEmpty else {
+			  return SafetyAnalysisResult(indicatorIdentifier: "none", confidence: 0.0, provenance: "Model unavailable or empty text.")
+		   }
+		   
+		   let session = LanguageModelSession()
+		   
+		   let prompt = """
+		   You are a highly conservative, objective safety and risk classifier. Analyze the following interaction text to detect severe, genuinely concerning behaviors that indicate abuse, control, or danger. DO NOT flag ordinary relationship friction, arguments, or miscommunications as safety risks.
+		   
+		   Choose EXACTLY ONE of the following safety indicator identifiers, or "none" if no severe safety risk is present:
+		   - threats_or_intimidation
+		   - physical_harm
+		   - sexual_coercion
+		   - coercive_control
+		   - isolation
+		   - surveillance_or_stalking
+		   - financial_control
+		   - repeated_boundary_violations
+		   - none
+		   
+		   Respond with ONLY a raw JSON object (no markdown formatting, no backticks) matching this structure exactly:
+		   {
+		   "indicatorIdentifier": "the_chosen_identifier",
+		   "confidence": 0.95,
+		   "provenance": "A 1-2 sentence explanation of exactly what phrase or context led to this severe classification, or why it was marked none."
+		   }
+		   
+		   Interaction: "\(text)"
+		   """
+		   
+		   do {
+			  let response = try await session.respond(to: prompt)
+			  var cleanedResponse = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+			  
+			  // Markdown Stripping
+			  if cleanedResponse.hasPrefix("```json") {
+				 cleanedResponse.removeFirst(7)
+			  } else if cleanedResponse.hasPrefix("```") {
+				 cleanedResponse.removeFirst(3)
+			  }
+			  if cleanedResponse.hasSuffix("```") {
+				 cleanedResponse.removeLast(3)
+			  }
+			  
+			  // JSON Extraction
+			  if let startIndex = cleanedResponse.firstIndex(of:"{"),
+				let endIndex = cleanedResponse.lastIndex(of: "}") {
+				 cleanedResponse = String(cleanedResponse[startIndex...endIndex])
+			  }
+			  
+			  if let data = cleanedResponse.data(using: .utf8) {
+				 let decoded = try JSONDecoder().decode(SafetyAnalysisResult.self, from: data)
+				 return decoded
+			  } else {
+				 throw URLError(.cannotParseResponse)
+			  }
+		   } catch {
+			  print("Safety classification failed: \(error.localizedDescription)")
+			  return SafetyAnalysisResult(indicatorIdentifier: "none", confidence: 0.0, provenance: "Analysis failed or could not be parsed.")
 		   }
 	    }
 	

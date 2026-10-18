@@ -213,12 +213,15 @@ struct NewInteractionEntryView: View {
 			
 			async let legacyCategoryTask = AIInsightService.classifyBehavior(text: capturedNotes)
 			async let frictionTask = AIInsightService.classifyFriction(text: capturedNotes)
+			async let safetyTask = AIInsightService.classifySafety(text: capturedNotes)
 			
 			let category = (try? await legacyCategoryTask) ?? "Unknown"
 			let friction = try? await frictionTask
+			let safety = try? await safetyTask
 			
 			var generatedReason: String?
-			if category != "Neutral" && 
+			
+			if category != "Neutral" &&
 				category != "Unknown" &&
 				category != "None" {
 				
@@ -274,6 +277,14 @@ struct NewInteractionEntryView: View {
 												newEntry.frictionProvenance = friction.provenance
 												newEntry.frictionReviewState = "unreviewed"
 												print("AI Friction: \(friction.categoryIdentifier) (Confidence: \(friction.confidence))")
+					}
+					
+					if let safety = safety {
+						newEntry.safetyIndicatorIdentifier = safety.indicatorIdentifier
+						newEntry.safetyTaxonomyVersion = 1
+						newEntry.safetyProvenance = safety.provenance
+						newEntry.safetyReviewState = "unreviewed"
+						print("AI Safety: \(safety.indicatorIdentifier) (Confidence: \(safety.confidence))")
 					}
 					
 					try backgroundContext.save()
