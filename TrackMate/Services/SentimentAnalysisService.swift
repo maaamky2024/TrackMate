@@ -21,6 +21,17 @@ struct SentimentResult: Equatable {
 
 class SentimentAnalysisService {
     
+	// Expose the threshold logic for reliable unit testing
+	    static func band(for score: Double) -> SentimentBand {
+		   if score > 0.3 {
+			  return .positive
+		   } else if score < -0.3 {
+			  return .negative
+		   } else {
+			  return .neutral
+		   }
+	    }
+	
     /// Analyzes the emotional polarity of the provided text.
     /// - Parameter text: The raw journal entry or interaction notes.
     /// - Returns: A `SentimentResult` containing the raw score (-1.0 to 1.0) and its categorized `SentimentBand`.
@@ -39,15 +50,6 @@ class SentimentAnalysisService {
 	   
 	   let score = Double(sentiment?.rawValue ?? "0.0") ?? 0.0
 	   
-	   let band: SentimentBand
-	   if score > 0.3 {
-		  band = .positive
-	   } else if score < -0.3 {
-		  band = .negative
-	   } else {
-		  band = .neutral
-	   }
-	   
-	   return SentimentResult(score: score, band: band)
+	    return SentimentResult(score: score, band: band(for: score))
     }
 }
