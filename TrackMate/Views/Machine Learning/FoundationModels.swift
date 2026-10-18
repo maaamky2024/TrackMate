@@ -9,7 +9,78 @@ import FoundationModels
 import Foundation
 import CoreData
 
+struct FrictionAnalysisResult: Codable {
+	let categoryIdentifier: String
+	let confidence: Double
+	let provenance: String
+}
+
 struct AIInsightService {
+	
+	// Analyzes text to determine ordinary relationship friction, strictly isolated from safety/toxicity.
+	    static func classifyFriction(text: String) async throws -> FrictionAnalysisResult {
+		   let model = SystemLanguageModel.default
+		   guard model.isAvailable, !text.isEmpty else {
+			  return FrictionAnalysisResult(categoryIdentifier: "none", confidence: 0.0, provenance: "Model unavailable or empty text.")
+		   }
+		   
+		   let session = LanguageModelSession()
+		   
+		   let prompt = """
+		   You are an objective relationship friction classifier. Analyze the following interaction text and categorize the *primary* source of friction.
+		   
+		   Choose EXACTLY ONE of the following category identifiers:
+		   - miscommunication
+		   - unmet_expectations
+		   - communication_breakdown
+		   - emotional_disconnect
+		   - boundary_disagreement
+		   - unequal_responsibilities
+		   - time_availability_mismatch
+		   - conflict_repair_difficulty
+		   - none
+		   
+		   Respond with ONLY a raw JSON object (no markdown formatting, no backticks) matching this structure exactly:
+		   {
+		   "categoryIdentifier": "the_chosen_identifier",
+		   "confidence": 0.85,
+		   "provenance": "A 1-2 sentence explanation of exactly what phrase or context led to this classification."
+		   }
+		   
+		   Interaction: "\(text)"
+		   """
+		   
+		   do {
+			  let response = try await session.respond(to: prompt)
+			  var cleanedResponse = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+			  
+			  // Markdown Stripping
+			  if cleanedResponse.hasPrefix("```json") {
+				 cleanedResponse.removeFirst(7)
+			  } else if cleanedResponse.hasPrefix("```") {
+				 cleanedResponse.removeFirst(3)
+			  }
+			  if cleanedResponse.hasSuffix("```") {
+				 cleanedResponse.removeLast(3)
+			  }
+			  
+			  // JSON Extraction
+			  if let startIndex = cleanedResponse.firstIndex(of:"{"),
+				let endIndex = cleanedResponse.lastIndex(of: "}") {
+				 cleanedResponse = String(cleanedResponse[startIndex...endIndex])
+			  }
+			  
+			  if let data = cleanedResponse.data(using: .utf8) {
+				 let decoded = try JSONDecoder().decode(FrictionAnalysisResult.self, from: data)
+				 return decoded
+			  } else {
+				 throw URLError(.cannotParseResponse)
+			  }
+		   } catch {
+			  print("Friction classification failed: \(error.localizedDescription)")
+			  return FrictionAnalysisResult(categoryIdentifier: "none", confidence: 0.0, provenance: "Analysis failed or could not be parsed.")
+		   }
+	    }
 	
 	// Automatically generates a summary based on history for a specific person.
 	static func generateSummary(for person: String, notes: [String]) async throws -> String? {
