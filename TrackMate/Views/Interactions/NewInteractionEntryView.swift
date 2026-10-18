@@ -1,4 +1,3 @@
-
 //
 //  NewInteractionEntryView.swift
 //  TrackMate
@@ -208,10 +207,17 @@ struct NewInteractionEntryView: View {
 		let capturedOverallExperience = overallExperience
 		
 		Task {
-			let category = (try? await AIInsightService.classifyBehavior(text: capturedNotes)) ?? "Unknown"
+			
+			let sentiment = SentimentAnalysisService.analyze(text: capturedNotes)
+			print("Local Sentiment: \(sentiment.band.rawValue) (\(sentiment.score))")
+			
+			async let legacyCategoryTask = AIInsightService.classifyBehavior(text: capturedNotes)
+			async let frictionTask = AIInsightService.classifyFriction(text: capturedNotes)
+			
+			let category = (try? await legacyCategoryTask) ?? "Unknown"
+			let friction = try? await frictionTask
 			
 			var generatedReason: String?
-			
 			if category != "Neutral" && 
 				category != "Unknown" &&
 				category != "None" {
@@ -255,12 +261,19 @@ struct NewInteractionEntryView: View {
 								context: backgroundContext
 							)
 						}
-						print("AI Flagged: \(category)")
+						print("AI Flagged (Legacy): \(category)")
 					} else {
 						newEntry.detectedRedFlag = "Inconclusive"
 						newEntry.flagConfidence = 0.0
-						
 						print("AI Result: Inconclusive")
+					}
+					
+					if let friction = friction {
+						newEntry.frictionCategoryIdentifier = friction.categoryIdentifier
+												newEntry.frictionTaxonomyVersion = 1
+												newEntry.frictionProvenance = friction.provenance
+												newEntry.frictionReviewState = "unreviewed"
+												print("AI Friction: \(friction.categoryIdentifier) (Confidence: \(friction.confidence))")
 					}
 					
 					try backgroundContext.save()
