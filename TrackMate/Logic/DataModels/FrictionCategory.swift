@@ -12,7 +12,7 @@ enum FrictionCategory: String, CaseIterable, Codable, Sendable, Identifiable {
 	
 	case miscommunication = "miscommunication"
 	case unmetExpectations = "unmet_expectations"
-	case communcationBreakdown = "communication_breakdown"
+	case communicationBreakdown = "communication_breakdown"
 	case emotionalDisconnect = "emotional_disconnect"
 	case boundaryDisagreement = "boundary_disagreement"
 	case unequalResponsibilities = "unequal_responsibilities"
@@ -31,7 +31,7 @@ enum FrictionCategory: String, CaseIterable, Codable, Sendable, Identifiable {
 		case .unmetExpectations:
 			return "Unmet Expectations"
 			
-		case .communcationBreakdown:
+		case .communicationBreakdown:
 			return "Communication Breakdown"
 			
 		case .emotionalDisconnect:
