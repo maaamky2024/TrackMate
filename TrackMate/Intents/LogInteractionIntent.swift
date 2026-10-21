@@ -20,26 +20,30 @@ struct LogInteractionIntent: AppIntent {
     var type: InteractionType
 	
 	@Parameter(title: "Details", default: "")
-	var detials: String
+	var details: String
     
-    @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
 	   
-	    let context = PersistenceController.shared.container.viewContext
-	    
-	    let newInteraction = InteractionLog(context: context)
-	    
-	    newInteraction.id = UUID()
-	    newInteraction.personName = personName
-	    newInteraction.type = type.rawValue
-	    newInteraction.timestamp = Date()
-	    newInteraction.details = detials
-	    
+	    let backgroundContext = PersistenceController.shared.newBackgroundContext()
 	    do {
-		    try context.save()
+		    try await backgroundContext.perform {
+			    
+			    
+			    let newInteraction = Interaction(context: backgroundContext)
+			    
+			    newInteraction.id = UUID()
+			    newInteraction.personName = personName
+			    newInteraction.interactionType = type.rawValue
+			    newInteraction.timestamp = Date()
+			    newInteraction.notes = details
+			    
+			    try backgroundContext.save()
+		    }
+		    
 		    // Success
 		    let spokenResponse = IntentDialog("Got it. I logged a \(type.rawValue) interaction with \(personName) in TrackMate.")
 		    return .result(dialog: spokenResponse)
+		    
 	    } catch {
 		    // Failure
 		    let errorResponse = IntentDialog("I'm sorry, I was unable to log this interaction. Please log the interaction manually in the app.")

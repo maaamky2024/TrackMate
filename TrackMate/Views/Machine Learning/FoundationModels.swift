@@ -212,8 +212,8 @@ struct AIInsightService {
    Respond with ONLY a raw JSON onject (no markdown formatting, no backticks) matching this structure exactly:
    { 
    "summary": "Provide an analysis of the relationship. Include what's working, what's not working, and make a suggestion to the user that would help them improve their situation.",
-   "greenFlags": ["List of objective green flags. ONLY extract green flags from positive interactions. Link them explicitly to emotional consistency."],
-   "redFlags": ["List of critical red flags. Evaluate logs against love-bombing, manipulation, or trauma-bonding patterns if the baseline data shows high volatility."]
+   "strengths": ["List of objective strengths. Link them explicitly to emotional consistency or positive interactions."],
+   "frictionPoints": ["List of recurring friction points. Evaluate logs against unmet expectations, boundary disagreement, or communication breakdowns."]
    }
    """
 		
