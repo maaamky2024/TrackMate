@@ -10,9 +10,8 @@ import CoreData
 
 enum TabSelection: Int {
 	case interactions = 0
-	case coachChat = 1
-	case analysis = 2
-	case settings = 3
+	case analysis = 1
+	case settings = 2
 }
 
 struct ContentView: View {
@@ -37,17 +36,6 @@ struct ContentView: View {
 				 }
                 }
 			 .tag(TabSelection.interactions)
-            
-            CoachChatView()
-			   .tabItem {
-				   Label {
-					   Text("Relationship Coach")
-				   } icon: {
-					   Image("LLMTabIcon")
-						   .renderingMode(.template)
-				   }
-			   }
-			   .tag(TabSelection.coachChat)
 		   
 		   AnalysisView()
 			   .tabItem {
